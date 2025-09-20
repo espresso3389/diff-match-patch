@@ -20,14 +20,14 @@ import 'diff.dart' as d;
 import 'match.dart' as m;
 import 'patch.dart' as p;
 
+/// Function type for a callback that determines if the diff operation should continue.
+typedef WillContinue = bool Function(List<d.Diff> currentDiffs);
+
 /// Class containing the [diff], [match] and [patch] methods.
 /// Also contains the behaviour settings.
 class DiffMatchPatch {
   // Defaults.
   // Set these on your diff_match_patch instance to override the defaults.
-
-  /// Number of seconds to map a diff before giving up (0 for infinity).
-  double diffTimeout = 1.0;
 
   /// Cost of an empty edit operation in terms of edit characters.
   int diffEditCost = 4;
@@ -57,26 +57,25 @@ class DiffMatchPatch {
   /// * [checkLines] is an optional speedup flag.  If false, then don't
   ///   run a line-level diff first to identify the changed areas.
   ///   Defaults to true, which does a faster, slightly less optimal diff.
-  /// * [deadline] is an optional time when the diff should be complete by.  Used
-  ///   internally for recursive calls.  Users should set [diffTimeout] instead.
+  /// * [willContinue] is an optional callback that is invoked periodically.
   ///
   /// Returns a List of [d.Diff] objects.
-  List<d.Diff> diff(String text1, String text2, [bool checkLines = true, DateTime? deadline]) {
-    return d.diff(text1, text2, checkLines: checkLines, deadline: deadline, timeout: diffTimeout);
+  List<d.Diff> diff(String text1, String text2, [bool checkLines = true, WillContinue? willContinue]) {
+    return d.diff(text1, text2, checkLines: checkLines, willContinue: willContinue);
   }
 
   /// Reduce the number of edits by eliminating semantically trivial equalities.
   ///
   /// [diffs] is a List of Diff objects.
   void diffCleanupSemantic(List<d.Diff> diffs) {
-    d.cleanupSemantic(diffs);
+    d.cleanupSemantic(diffs, from: 0);
   }
 
   /// Reduce the number of edits by eliminating operationally trivial equalities.
   ///
   /// [diffs] is a List of Diff objects.
   void diffCleanupEfficiency(List<d.Diff> diffs) {
-    d.cleanupEfficiency(diffs, diffEditCost);
+    d.cleanupEfficiency(diffs, diffEditCost, from: 0);
   }
 
   /// Compute the Levenshtein distance; the number of inserted, deleted or
@@ -122,7 +121,6 @@ class DiffMatchPatch {
       a,
       b: optB,
       c: optC,
-      diffTimeout: diffTimeout,
       diffEditCost: diffEditCost,
       deleteThreshold: patchDeleteThreshold,
       margin: patchMargin,
@@ -138,12 +136,6 @@ class DiffMatchPatch {
   /// Returns a two element List, containing the new text and a List of
   ///      bool values.
   List patchApply(List<p.Patch> patches, String text) {
-    return p.patchApply(
-      patches,
-      text,
-      diffTimeout: diffTimeout,
-      deleteThreshold: patchDeleteThreshold,
-      margin: patchMargin,
-    );
+    return p.patchApply(patches, text, deleteThreshold: patchDeleteThreshold, margin: patchMargin);
   }
 }

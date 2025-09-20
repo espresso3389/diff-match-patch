@@ -29,11 +29,7 @@ part of '../diff.dart';
 /// Returns a five element List of Strings, containing the prefix of [text1],
 /// the suffix of [text1], the prefix of [text2], the suffix of [text2] and the
 /// common middle.  Or null if there was no match.
-List<String>? diffHalfMatch(String text1, String text2, double timeout) {
-  if (timeout <= 0) {
-    // Don't risk returning a non-optimal diff if we have unlimited time.
-    return null;
-  }
+List<String>? diffHalfMatch(String text1, String text2) {
   final longText = text1.length > text2.length ? text1 : text2;
   final shortText = text1.length > text2.length ? text2 : text1;
   if (longText.length < 4 || shortText.length * 2 < longText.length) {

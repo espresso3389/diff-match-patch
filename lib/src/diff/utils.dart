@@ -82,9 +82,9 @@ Map<String, dynamic> linesToChars(String text1, String text2) {
 ///
 /// * [diffs] is a List of Diff objects.
 /// * [lineArray] is a List of unique strings.
-void charsToLines(List<Diff> diffs, List<String> lineArray) {
+void charsToLines(List<Diff> diffs, List<String> lineArray, {required int from}) {
   final text = StringBuffer();
-  for (var diff in diffs) {
+  for (var diff in diffs.skip(from)) {
     for (var y = 0; y < diff.text.length; y++) {
       text.write(lineArray[diff.text.codeUnitAt(y)]);
     }

@@ -86,50 +86,44 @@ main() {
 
     group('Half Match', () {
       test('No match #1', () {
-        expect(diffHalfMatch('1234567890', 'abcdef', 1.0), isNull);
+        expect(diffHalfMatch('1234567890', 'abcdef'), isNull);
       });
       test('No match #2', () {
-        expect(diffHalfMatch('12345', '23', 1.0), isNull);
+        expect(diffHalfMatch('12345', '23'), isNull);
       });
       test('Single match #1', () {
-        expect(diffHalfMatch('1234567890', 'a345678z', 1.0), equals(['12', '90', 'a', 'z', '345678']));
+        expect(diffHalfMatch('1234567890', 'a345678z'), equals(['12', '90', 'a', 'z', '345678']));
       });
       test('Single match #2', () {
-        expect(diffHalfMatch('a345678z', '1234567890', 1.0), equals(['a', 'z', '12', '90', '345678']));
+        expect(diffHalfMatch('a345678z', '1234567890'), equals(['a', 'z', '12', '90', '345678']));
       });
       test('Single match #3', () {
-        expect(diffHalfMatch('abc56789z', '1234567890', 1.0), equals(['abc', 'z', '1234', '0', '56789']));
+        expect(diffHalfMatch('abc56789z', '1234567890'), equals(['abc', 'z', '1234', '0', '56789']));
       });
       test('Single match #4', () {
-        expect(diffHalfMatch('a23456xyz', '1234567890', 1.0), equals(['a', 'xyz', '1', '7890', '23456']));
+        expect(diffHalfMatch('a23456xyz', '1234567890'), equals(['a', 'xyz', '1', '7890', '23456']));
       });
       test('Multiple matches #1', () {
         expect(
-          diffHalfMatch('121231234123451234123121', 'a1234123451234z', 1.0),
+          diffHalfMatch('121231234123451234123121', 'a1234123451234z'),
           equals(['12123', '123121', 'a', 'z', '1234123451234']),
         );
       });
       test('Multiple matches #2', () {
         expect(
-          diffHalfMatch('x-=-=-=-=-=-=-=-=-=-=-=-=', 'xx-=-=-=-=-=-=-=', 1.0),
+          diffHalfMatch('x-=-=-=-=-=-=-=-=-=-=-=-=', 'xx-=-=-=-=-=-=-='),
           equals(['', '-=-=-=-=-=', 'x', '', 'x-=-=-=-=-=-=-=']),
         );
       });
       test('Multiple matches #3', () {
         expect(
-          diffHalfMatch('-=-=-=-=-=-=-=-=-=-=-=-=y', '-=-=-=-=-=-=-=yy', 1.0),
+          diffHalfMatch('-=-=-=-=-=-=-=-=-=-=-=-=y', '-=-=-=-=-=-=-=yy'),
           equals(['-=-=-=-=-=', '', '', 'y', '-=-=-=-=-=-=-=y']),
         );
       });
       test('Non-optimal halfmatch', () {
         // Optimal diff would be -q+x=H-i+e=lloHe+Hu=llo-Hew+y not -qHillo+x=HelloHe-w+Hulloy
-        expect(
-          diffHalfMatch('qHilloHelloHew', 'xHelloHeHulloy', 1.0),
-          equals(['qHillo', 'w', 'x', 'Hulloy', 'HelloHe']),
-        );
-      });
-      test('Optimal no halfmatch', () {
-        expect(diffHalfMatch('qHilloHelloHew', 'xHelloHeHulloy', 0.0), isNull);
+        expect(diffHalfMatch('qHilloHelloHew', 'xHelloHeHulloy'), equals(['qHillo', 'w', 'x', 'Hulloy', 'HelloHe']));
       });
     });
 
@@ -192,7 +186,7 @@ main() {
       test('Shared lines', () {
         // Convert chars up to lines.
         var diffs = <Diff>[deq('\u0001\u0002\u0001'), dins('\u0002\u0001\u0002')];
-        charsToLines(diffs, ['', 'alpha\n', 'beta\n']);
+        charsToLines(diffs, ['', 'alpha\n', 'beta\n'], from: 0);
         expect(diffs, equals([deq('alpha\nbeta\nalpha\n'), dins('beta\nalpha\nbeta\n')]));
       });
 
@@ -211,7 +205,7 @@ main() {
         expect(chars.length, equals(n));
         lineList.insert(0, '');
         var diffs = [ddel(chars)];
-        charsToLines(diffs, lineList);
+        charsToLines(diffs, lineList, from: 0);
         expect(diffs, equals([ddel(lines)]));
       });
     });
@@ -219,62 +213,62 @@ main() {
     group('CleanupMerge', () {
       test('Null', () {
         var diffs = <Diff>[];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([]));
       });
       test('No change case', () {
         var diffs = <Diff>[deq('a'), ddel('b'), dins('c')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([deq('a'), ddel('b'), dins('c')]));
       });
       test('Merge equalities', () {
         var diffs = <Diff>[deq('a'), deq('b'), deq('c')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([deq('abc')]));
       });
       test('Merge deletions', () {
         var diffs = <Diff>[ddel('a'), ddel('b'), ddel('c')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([ddel('abc')]));
       });
       test('Merge insertions', () {
         var diffs = <Diff>[dins('a'), dins('b'), dins('c')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([dins('abc')]));
       });
       test('Merge interweave', () {
         var diffs = <Diff>[ddel('a'), dins('b'), ddel('c'), dins('d'), deq('e'), deq('f')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([ddel('ac'), dins('bd'), deq('ef')]));
       });
       test('Prefix and suffix detection', () {
         var diffs = <Diff>[ddel('a'), dins('abc'), ddel('dc')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([deq('a'), ddel('d'), dins('b'), deq('c')]));
       });
       test('Prefix and suffix detection with equalities', () {
         var diffs = <Diff>[deq('x'), ddel('a'), dins('abc'), ddel('dc'), deq('y')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([deq('xa'), ddel('d'), dins('b'), deq('cy')]));
       });
       test('Slide edit left', () {
         var diffs = <Diff>[deq('a'), dins('ba'), deq('c')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([dins('ab'), deq('ac')]));
       });
       test('Slide edit right', () {
         var diffs = <Diff>[deq('c'), dins('ab'), deq('a')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([deq('ca'), dins('ba')]));
       });
       test('Slide edit left recursive', () {
         var diffs = <Diff>[deq('a'), ddel('b'), deq('c'), ddel('ac'), deq('x')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([ddel('abc'), deq('acx')]));
       });
       test('diff_cleanupMerge: Slide edit right recursive', () {
         var diffs = <Diff>[deq('x'), ddel('ca'), deq('c'), ddel('b'), deq('a')];
-        cleanupMerge(diffs);
+        cleanupMerge(diffs, from: 0);
         expect(diffs, equals([deq('xca'), ddel('cba')]));
       });
     });
@@ -283,42 +277,42 @@ main() {
       // Slide diffs to match logical boundaries.
       test('Null case', () {
         var diffs = <Diff>[];
-        cleanupSemanticLossless(diffs);
+        cleanupSemanticLossless(diffs, from: 0);
         expect(diffs, equals([]));
       });
       test('Blank lines', () {
         var diffs = <Diff>[deq('AAA\r\n\r\nBBB'), dins('\r\nDDD\r\n\r\nBBB'), deq('\r\nEEE')];
-        cleanupSemanticLossless(diffs);
+        cleanupSemanticLossless(diffs, from: 0);
         expect(diffs, equals([deq('AAA\r\n\r\n'), dins('BBB\r\nDDD\r\n\r\n'), deq('BBB\r\nEEE')]));
       });
       test('Line boundaries', () {
         var diffs = <Diff>[deq('AAA\r\nBBB'), dins(' DDD\r\nBBB'), deq(' EEE')];
-        cleanupSemanticLossless(diffs);
+        cleanupSemanticLossless(diffs, from: 0);
         expect(diffs, equals([deq('AAA\r\n'), dins('BBB DDD\r\n'), deq('BBB EEE')]));
       });
       test('Word boundaries', () {
         var diffs = <Diff>[deq('The c'), dins('ow and the c'), deq('at.')];
-        cleanupSemanticLossless(diffs);
+        cleanupSemanticLossless(diffs, from: 0);
         expect(diffs, equals([deq('The '), dins('cow and the '), deq('cat.')]));
       });
       test('Alphanumeric boundaries', () {
         var diffs = <Diff>[deq('The-c'), dins('ow-and-the-c'), deq('at.')];
-        cleanupSemanticLossless(diffs);
+        cleanupSemanticLossless(diffs, from: 0);
         expect(diffs, equals([deq('The-'), dins('cow-and-the-'), deq('cat.')]));
       });
       test('Hitting the start', () {
         var diffs = <Diff>[deq('a'), ddel('a'), deq('ax')];
-        cleanupSemanticLossless(diffs);
+        cleanupSemanticLossless(diffs, from: 0);
         expect(diffs, equals([ddel('a'), deq('aax')]));
       });
       test('Hitting the end', () {
         var diffs = <Diff>[deq('xa'), ddel('a'), deq('a')];
-        cleanupSemanticLossless(diffs);
+        cleanupSemanticLossless(diffs, from: 0);
         expect(diffs, equals([deq('xaa'), ddel('a')]));
       });
       test('Sentence boundaries', () {
         var diffs = <Diff>[deq('The xxx. The '), dins('zzz. The '), deq('yyy.')];
-        cleanupSemanticLossless(diffs);
+        cleanupSemanticLossless(diffs, from: 0);
         expect(diffs, equals([deq('The xxx.'), dins(' The zzz.'), deq(' The yyy.')]));
       });
     });
@@ -327,27 +321,27 @@ main() {
       // Cleanup semantically trivial equalities.
       test('Null case', () {
         var diffs = <Diff>[];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([]));
       });
       test('No elimination #1', () {
         var diffs = <Diff>[ddel('ab'), dins('cd'), deq('12'), ddel('e')];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([ddel('ab'), dins('cd'), deq('12'), ddel('e')]));
       });
       test('No elimination #2', () {
         var diffs = <Diff>[ddel('abc'), dins('ABC'), deq('1234'), ddel('wxyz')];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([ddel('abc'), dins('ABC'), deq('1234'), ddel('wxyz')]));
       });
       test('Simple elimination', () {
         var diffs = <Diff>[ddel('a'), deq('b'), ddel('c')];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([ddel('abc'), dins('b')]));
       });
       test('Backpass elimination', () {
         var diffs = <Diff>[ddel('ab'), deq('cd'), ddel('e'), deq('f'), dins('g')];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([ddel('abcdef'), dins('cdfg')]));
       });
       test('Multiple elimination', () {
@@ -362,32 +356,32 @@ main() {
           ddel('B'),
           dins('2'),
         ];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([ddel('AB_AB'), dins('1A2_1A2')]));
       });
       test('Word boundaries', () {
         var diffs = <Diff>[deq('The c'), ddel('ow and the c'), deq('at.')];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([deq('The '), ddel('cow and the '), deq('cat.')]));
       });
       test('No overlap elimination', () {
         var diffs = <Diff>[ddel('abcxx'), dins('xxdef')];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([ddel('abcxx'), dins('xxdef')]));
       });
       test('Overlap elimination', () {
         var diffs = <Diff>[ddel('abcxxx'), dins('xxxdef')];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([ddel('abc'), deq('xxx'), dins('def')]));
       });
       test('Reverse overlap elimination', () {
         var diffs = <Diff>[ddel('xxxabc'), dins('defxxx')];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([dins('def'), deq('xxx'), ddel('abc')]));
       });
       test('Two overlap eliminations', () {
         var diffs = <Diff>[ddel('abcd1212'), dins('1212efghi'), deq('----'), ddel('A3'), dins('3BC')];
-        cleanupSemantic(diffs);
+        cleanupSemantic(diffs, from: 0);
         expect(diffs, equals([ddel('abcd'), deq('1212'), dins('efghi'), deq('----'), ddel('A'), deq('3'), dins('BC')]));
       });
     });
@@ -396,32 +390,32 @@ main() {
       // Cleanup operationally trivial equalities.
       test('Null case', () {
         var diffs = <Diff>[];
-        cleanupEfficiency(diffs, 4);
+        cleanupEfficiency(diffs, 4, from: 0);
         expect(diffs, equals([]));
       });
       test('No elimination', () {
         var diffs = [ddel('ab'), dins('12'), deq('wxyz'), ddel('cd'), dins('34')];
-        cleanupEfficiency(diffs, 4);
+        cleanupEfficiency(diffs, 4, from: 0);
         expect(diffs, equals([ddel('ab'), dins('12'), deq('wxyz'), ddel('cd'), dins('34')]));
       });
       test('Four-edit elimination', () {
         var diffs = [ddel('ab'), dins('12'), deq('xyz'), ddel('cd'), dins('34')];
-        cleanupEfficiency(diffs, 4);
+        cleanupEfficiency(diffs, 4, from: 0);
         expect(diffs, equals([ddel('abxyzcd'), dins('12xyz34')]));
       });
       test('Three-edit elimination', () {
         var diffs = [dins('12'), deq('x'), ddel('cd'), dins('34')];
-        cleanupEfficiency(diffs, 4);
+        cleanupEfficiency(diffs, 4, from: 0);
         expect(diffs, equals([ddel('xcd'), dins('12x34')]));
       });
       test('Backpass elimination', () {
         var diffs = [ddel('ab'), dins('12'), deq('xy'), dins('34'), deq('z'), ddel('cd'), dins('56')];
-        cleanupEfficiency(diffs, 4);
+        cleanupEfficiency(diffs, 4, from: 0);
         expect(diffs, equals([ddel('abxyzcd'), dins('12xy34z56')]));
       });
       test('High cost elimination', () {
         var diffs = [ddel('ab'), dins('12'), deq('wxyz'), ddel('cd'), dins('34')];
-        cleanupEfficiency(diffs, 5);
+        cleanupEfficiency(diffs, 5, from: 0);
         expect(diffs, equals([ddel('abwxyzcd'), dins('12wxyz34')]));
       });
     });
@@ -525,16 +519,9 @@ main() {
         // the insertion and deletion pairs are swapped.
         // If the order changes, tweak this test as required.
         var diffs = [ddel('c'), dins('m'), deq('a'), ddel('t'), dins('p')];
-        // One year should be sufficient.
-        var deadline = DateTime.now().add(Duration(days: 365));
-        expect(diffBisect('cat', 'map', 1.0, deadline), equals(diffs));
-      });
-
-      test('Timeout', () {
-        var diffs = [ddel('cat'), dins('map')];
-        // Set deadline to one year ago.
-        var deadline = DateTime.now().subtract(Duration(days: 365));
-        expect(diffBisect('cat', 'map', 1.0, deadline), equals(diffs));
+        var newDiffs = <Diff>[];
+        diffBisect(newDiffs, 'cat', 'map', () => true);
+        expect(newDiffs, equals(diffs));
       });
     });
 
@@ -564,37 +551,34 @@ main() {
         );
       });
       test('Simple case #1', () {
-        expect(diff('a', 'b', checkLines: false, timeout: 0.0), equals([ddel('a'), dins('b')]));
+        expect(diff('a', 'b', checkLines: false), equals([ddel('a'), dins('b')]));
       });
 
       test('Simple case #2', () {
         expect(
-          diff('Apples are a fruit.', 'Bananas are also fruit.', checkLines: false, timeout: 0.0),
+          diff('Apples are a fruit.', 'Bananas are also fruit.', checkLines: false),
           equals([ddel('Apple'), dins('Banana'), deq('s are a'), dins('lso'), deq(' fruit.')]),
         );
       });
 
       test('Simple case #3', () {
         expect(
-          diff('ax\t', '\u0680x000', checkLines: false, timeout: 0.0),
+          diff('ax\t', '\u0680x000', checkLines: false),
           equals([ddel('a'), dins('\u0680'), deq('x'), ddel('\t'), dins('000')]),
         );
       });
       test('Overlap #1', () {
         expect(
-          diff('1ayb2', 'abxab', checkLines: false, timeout: 0.0),
+          diff('1ayb2', 'abxab', checkLines: false),
           equals([ddel('1'), deq('a'), ddel('y'), deq('b'), ddel('2'), dins('xab')]),
         );
       });
       test('Overlap #2', () {
-        expect(
-          diff('abcy', 'xaxcxabc', checkLines: false, timeout: 0.0),
-          equals([dins('xaxcx'), deq('abc'), ddel('y')]),
-        );
+        expect(diff('abcy', 'xaxcxabc', checkLines: false), equals([dins('xaxcx'), deq('abc'), ddel('y')]));
       });
       test('Overlap #3', () {
         expect(
-          diff('ABCDa=bcd=efghijklmnopqrsEFGHIJKLMNOefg', 'a-bcd-efghijklmnopqrs', checkLines: false, timeout: 0.0),
+          diff('ABCDa=bcd=efghijklmnopqrsEFGHIJKLMNOefg', 'a-bcd-efghijklmnopqrs', checkLines: false),
           equals([
             ddel('ABCD'),
             deq('a'),
@@ -610,7 +594,7 @@ main() {
       });
       test('Large equality', () {
         expect(
-          diff('a [[Pennsylvania]] and [[New', ' and [[Pennsylvania]]', checkLines: false, timeout: 0.0),
+          diff('a [[Pennsylvania]] and [[New', ' and [[Pennsylvania]]', checkLines: false),
           equals([dins(' '), deq('a'), dins('nd'), deq(' [[Pennsylvania]]'), ddel(' and [[New')]),
         );
       });
@@ -622,7 +606,7 @@ main() {
             '1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n';
         var b =
             'abcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\n';
-        expect(diff(a, b, timeout: 0.0), equals(diff(a, b, checkLines: false)));
+        expect(diff(a, b), equals(diff(a, b, checkLines: false)));
       });
 
       test('Single line-mode', () {
@@ -630,7 +614,7 @@ main() {
             '1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890';
         var b =
             'abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij';
-        expect(diff(a, b, timeout: 0.0), equals(diff(a, b, checkLines: false)));
+        expect(diff(a, b), equals(diff(a, b, checkLines: false)));
       });
 
       test('Overlap line-mode', () {
@@ -641,24 +625,6 @@ main() {
         var textsLinemode = _rebuildTexts(diff(a, b));
         var textsTextmode = _rebuildTexts(diff(a, b, checkLines: false));
         expect(textsTextmode, equals(textsLinemode));
-      });
-
-      test('Timeout min', () {
-        var a =
-            '`Twas brillig, and the slithy toves\nDid gyre and gimble in the wabe:\nAll mimsy were the borogoves,\nAnd the mome raths outgrabe.\n';
-        var b =
-            'I am the very model of a modern major general,\nI\'ve information vegetable, animal, and mineral,\nI know the kings of England, and I quote the fights historical,\nFrom Marathon to Waterloo, in order categorical.\n';
-        // Increase the text lengths by 1024 times to ensure a timeout.
-        for (var x = 0; x < 10; x++) {
-          a = '$a$a';
-          b = '$b$b';
-        }
-        var startTime = DateTime.now();
-        diff(a, b, timeout: 0.1);
-        var endTime = DateTime.now();
-        var elapsedSeconds = endTime.difference(startTime).inMilliseconds / 1000;
-        // Test that we took at least the timeout period.
-        expect(0.1, lessThanOrEqualTo(elapsedSeconds));
       });
     });
   });

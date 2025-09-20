@@ -18,6 +18,7 @@ library;
 
 import 'dart:math';
 
+import 'api.dart' show WillContinue;
 import 'common.dart';
 import 'diff.dart';
 import 'match.dart';
@@ -229,8 +230,7 @@ List<Patch> patchMake(
   Object? a, {
   Object? b,
   Object? c,
-  double diffTimeout = 1.0,
-  DateTime? diffDeadline,
+  WillContinue? willContinue,
   int diffEditCost = 4,
   double deleteThreshold = 0.5,
   int margin = 4,
@@ -241,10 +241,10 @@ List<Patch> patchMake(
     // Method 1: text1, text2
     // Compute diffs from text1 and text2.
     text1 = a;
-    diffs = diff(text1, b, checkLines: true, timeout: diffTimeout, deadline: diffDeadline);
+    diffs = diff(text1, b, checkLines: true, willContinue: willContinue);
     if (diffs.length > 2) {
-      cleanupSemantic(diffs);
-      cleanupEfficiency(diffs, diffEditCost);
+      cleanupSemantic(diffs, from: 0);
+      cleanupEfficiency(diffs, diffEditCost, from: 0);
     }
   } else if (a is List<Diff> && b == null && c == null) {
     // Method 2: diffs
@@ -378,8 +378,7 @@ List patchApply(
   List<Patch> patches,
   String text, {
   double deleteThreshold = 0.5,
-  double diffTimeout = 1.0,
-  DateTime? diffDeadline,
+  WillContinue? willContinue,
   double matchThreshold = 0.5,
   int matchDistance = 1000,
   int margin = 4,
@@ -460,12 +459,12 @@ List patchApply(
       } else {
         // Imperfect match.  Run a diff to get a framework of equivalent
         // indices.
-        final diffs = diff(text1, text2, checkLines: false, deadline: diffDeadline, timeout: diffTimeout);
+        final diffs = diff(text1, text2, checkLines: false, willContinue: willContinue);
         if ((text1.length > bitsPerInt) && (levenshtein(diffs) / text1.length > deleteThreshold)) {
           // The end points match, but the content is unacceptably bad.
           results[x] = false;
         } else {
-          cleanupSemanticLossless(diffs);
+          cleanupSemanticLossless(diffs, from: 0);
           var index1 = 0;
           for (var aDiff in aPatch.diffs) {
             if (aDiff.operation != DiffOperation.equal) {

@@ -28,13 +28,13 @@ RegExp _blanklineStartRegex = RegExp(r'^\r?\n\r?\n');
 /// Reduce the number of edits by eliminating semantically trivial equalities.
 ///
 /// [diffs] is a List of Diff objects.
-void cleanupSemantic(List<Diff> diffs) {
+void cleanupSemantic(List<Diff> diffs, {required int from}) {
   var changes = false;
   // Stack of indices where equalities are found.
   final equalities = <int>[];
   // Always equal to diffs[equalities.last()].text
   String? lastEquality;
-  var pointer = 0; // Index of current position.
+  var pointer = from; // Index of current position.
   // Number of characters that changed prior to the equality.
   var lengthInsertions1 = 0;
   var lengthDeletions1 = 0;
@@ -72,7 +72,7 @@ void cleanupSemantic(List<Diff> diffs) {
         if (equalities.isNotEmpty) {
           equalities.removeLast();
         }
-        pointer = equalities.isEmpty ? -1 : equalities.last;
+        pointer = from + (equalities.isEmpty ? -1 : equalities.last);
         lengthInsertions1 = 0; // Reset the counters.
         lengthDeletions1 = 0;
         lengthInsertions2 = 0;
@@ -86,9 +86,9 @@ void cleanupSemantic(List<Diff> diffs) {
 
   // Normalize the diff.
   if (changes) {
-    cleanupMerge(diffs);
+    cleanupMerge(diffs, from: from);
   }
-  cleanupSemanticLossless(diffs);
+  cleanupSemanticLossless(diffs, from: from);
 
   // Find any overlaps between deletions and insertions.
   // e.g: <del>abcxxx</del><ins>xxxdef</ins>
@@ -96,7 +96,7 @@ void cleanupSemantic(List<Diff> diffs) {
   // e.g: <del>xxxabc</del><ins>defxxx</ins>
   //   -> <ins>def</ins>xxx<del>abc</del>
   // Only extract an overlap if it is as big as the edit ahead or behind it.
-  pointer = 1;
+  pointer = from + 1;
   while (pointer < diffs.length) {
     if (diffs[pointer - 1].operation == DiffOperation.delete && diffs[pointer].operation == DiffOperation.insert) {
       var deletion = diffs[pointer - 1].text;
@@ -134,7 +134,7 @@ void cleanupSemantic(List<Diff> diffs) {
 /// e.g: The c<ins>at c</ins>ame. -> The <ins>cat </ins>came.
 ///
 /// [diffs] is a List of Diff objects.
-void cleanupSemanticLossless(List<Diff> diffs) {
+void cleanupSemanticLossless(List<Diff> diffs, {required int from}) {
   /// Given two strings, compute a score representing whether the internal
   /// boundary falls on logical boundaries.
   /// Scores range from 6 (best) to 0 (worst).
@@ -184,7 +184,7 @@ void cleanupSemanticLossless(List<Diff> diffs) {
     return 0;
   }
 
-  var pointer = 1;
+  var pointer = from + 1;
   // Intentionally ignore the first and last element (don't need checking).
   while (pointer < diffs.length - 1) {
     if (diffs[pointer - 1].operation == DiffOperation.equal && diffs[pointer + 1].operation == DiffOperation.equal) {
@@ -245,13 +245,13 @@ void cleanupSemanticLossless(List<Diff> diffs) {
 /// Reduce the number of edits by eliminating operationally trivial equalities.
 ///
 /// [diffs] is a List of Diff objects.
-void cleanupEfficiency(List<Diff> diffs, int diffEditCost) {
+void cleanupEfficiency(List<Diff> diffs, int diffEditCost, {required int from}) {
   var changes = false;
   // Stack of indices where equalities are found.
   final equalities = <int>[];
   // Always equal to diffs[equalities.last()].text
   String? lastEquality;
-  var pointer = 0; // Index of current position.
+  var pointer = from; // Index of current position.
   // Is there an insertion operation before the last equality.
   var preIns = false;
   // Is there a deletion operation before the last equality.
@@ -308,7 +308,7 @@ void cleanupEfficiency(List<Diff> diffs, int diffEditCost) {
           if (equalities.isNotEmpty) {
             equalities.removeLast();
           }
-          pointer = equalities.isEmpty ? -1 : equalities.last;
+          pointer = from + (equalities.isEmpty ? -1 : equalities.last);
           postIns = postDel = false;
         }
         changes = true;
@@ -318,7 +318,7 @@ void cleanupEfficiency(List<Diff> diffs, int diffEditCost) {
   }
 
   if (changes) {
-    cleanupMerge(diffs);
+    cleanupMerge(diffs, from: from);
   }
 }
 
@@ -326,9 +326,9 @@ void cleanupEfficiency(List<Diff> diffs, int diffEditCost) {
 /// Any edit section can move as long as it doesn't cross an equality.
 ///
 /// [diffs] is a List of Diff objects.
-void cleanupMerge(List<Diff> diffs) {
+void cleanupMerge(List<Diff> diffs, {required int from}) {
   diffs.add(Diff(DiffOperation.equal, '')); // Add a dummy entry at the end.
-  var pointer = 0;
+  var pointer = from;
   var countDelete = 0;
   var countInsert = 0;
   var textDelete = '';
@@ -409,7 +409,7 @@ void cleanupMerge(List<Diff> diffs) {
   // which can be shifted sideways to eliminate an equality.
   // e.g: A<ins>BA</ins>C -> <ins>AB</ins>AC
   var changes = false;
-  pointer = 1;
+  pointer = from + 1;
   // Intentionally ignore the first and last element (don't need checking).
   while (pointer < diffs.length - 1) {
     if (diffs[pointer - 1].operation == DiffOperation.equal && diffs[pointer + 1].operation == DiffOperation.equal) {
@@ -436,6 +436,6 @@ void cleanupMerge(List<Diff> diffs) {
   }
   // If shifts were made, the diff needs reordering and another shift sweep.
   if (changes) {
-    cleanupMerge(diffs);
+    cleanupMerge(diffs, from: from);
   }
 }
