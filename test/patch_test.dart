@@ -1,7 +1,7 @@
 /// Tests for Patch functions
 ///
 /// Copyright 2011 Google Inc.
-/// Copyright 2014 Boris Kaul <localvoid@gmail.com>
+/// Copyright 2014 Boris Kaul `<localvoid@gmail.com>`
 /// http://github.com/localvoid/diff-match-patch
 ///
 /// Licensed under the Apache License, Version 2.0 (the 'License');
@@ -15,10 +15,11 @@
 /// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
+library;
 
-import 'package:test/test.dart';
 import 'package:diff_match_patch/src/diff.dart';
 import 'package:diff_match_patch/src/patch.dart';
+import 'package:test/test.dart';
 
 // ignore: always_declare_return_types
 main() {
@@ -36,7 +37,7 @@ main() {
         Diff(DiffOperation.equal, ' over '),
         Diff(DiffOperation.delete, 'the'),
         Diff(DiffOperation.insert, 'a'),
-        Diff(DiffOperation.equal, '\nlaz')
+        Diff(DiffOperation.equal, '\nlaz'),
       ];
       var strp = '@@ -21,18 +22,17 @@\n jump\n-s\n+ed\n  over \n-the\n+a\n %0Alaz\n';
       expect(p.toString(), equals(strp));
@@ -105,7 +106,7 @@ main() {
     group('Make', () {
       const text1 = 'The quick brown fox jumps over the lazy dog.';
       const text2 = 'That quick brown fox jumped over a lazy dog.';
-      var diffs = diff(text1, text2, checklines: false);
+      var diffs = diff(text1, text2, checkLines: false);
 
       test('Null', () {
         var patches = patchMake('', b: '');
@@ -143,20 +144,23 @@ main() {
 
       test('Character encoding', () {
         var patches = patchMake('`1234567890-=[]\\;\',./', b: '~!@#\$%^&*()_+{}|:"<>?');
-        expect(patchToText(patches),
-            equals('@@ -1,21 +1,21 @@\n-%601234567890-=%5B%5D%5C;\',./\n+~!@#\$%25%5E&*()_+%7B%7D%7C:%22%3C%3E?\n'));
+        expect(
+          patchToText(patches),
+          equals('@@ -1,21 +1,21 @@\n-%601234567890-=%5B%5D%5C;\',./\n+~!@#\$%25%5E&*()_+%7B%7D%7C:%22%3C%3E?\n'),
+        );
       });
 
       test('Character decoding', () {
         var diffs = [
           Diff(DiffOperation.delete, '`1234567890-=[]\\;\',./'),
-          Diff(DiffOperation.insert, '~!@#\$%^&*()_+{}|:"<>?')
+          Diff(DiffOperation.insert, '~!@#\$%^&*()_+{}|:"<>?'),
         ];
         expect(
-            patchFromText(
-                    '@@ -1,21 +1,21 @@\n-%601234567890-=%5B%5D%5C;\',./\n+~!@#\$%25%5E&*()_+%7B%7D%7C:%22%3C%3E?\n')[0]
-                .diffs,
-            equals(diffs));
+          patchFromText(
+            '@@ -1,21 +1,21 @@\n-%601234567890-=%5B%5D%5C;\',./\n+~!@#\$%25%5E&*()_+%7B%7D%7C:%22%3C%3E?\n',
+          )[0].diffs,
+          equals(diffs),
+        );
       });
 
       test('Long string with repeats', () {
@@ -179,18 +183,24 @@ main() {
     group('Split Max', () {
       // Assumes that Match_MaxBits is 32.
       test('#1', () {
-        var patches = patchMake('abcdefghijklmnopqrstuvwxyz01234567890',
-            b: 'XabXcdXefXghXijXklXmnXopXqrXstXuvXwxXyzX01X23X45X67X89X0');
+        var patches = patchMake(
+          'abcdefghijklmnopqrstuvwxyz01234567890',
+          b: 'XabXcdXefXghXijXklXmnXopXqrXstXuvXwxXyzX01X23X45X67X89X0',
+        );
         patchSplitMax(patches);
         expect(
-            patchToText(patches),
-            equals(
-                '@@ -1,32 +1,46 @@\n+X\n ab\n+X\n cd\n+X\n ef\n+X\n gh\n+X\n ij\n+X\n kl\n+X\n mn\n+X\n op\n+X\n qr\n+X\n st\n+X\n uv\n+X\n wx\n+X\n yz\n+X\n 012345\n@@ -25,13 +39,18 @@\n zX01\n+X\n 23\n+X\n 45\n+X\n 67\n+X\n 89\n+X\n 0\n'));
+          patchToText(patches),
+          equals(
+            '@@ -1,32 +1,46 @@\n+X\n ab\n+X\n cd\n+X\n ef\n+X\n gh\n+X\n ij\n+X\n kl\n+X\n mn\n+X\n op\n+X\n qr\n+X\n st\n+X\n uv\n+X\n wx\n+X\n yz\n+X\n 012345\n@@ -25,13 +39,18 @@\n zX01\n+X\n 23\n+X\n 45\n+X\n 67\n+X\n 89\n+X\n 0\n',
+          ),
+        );
       });
 
       test('#2', () {
-        var patches = patchMake('abcdef1234567890123456789012345678901234567890123456789012345678901234567890uvwxyz',
-            b: 'abcdefuvwxyz');
+        var patches = patchMake(
+          'abcdef1234567890123456789012345678901234567890123456789012345678901234567890uvwxyz',
+          b: 'abcdefuvwxyz',
+        );
         var oldToText = patchToText(patches);
         patchSplitMax(patches);
         expect(patchToText(patches), equals(oldToText));
@@ -200,19 +210,25 @@ main() {
         var patches = patchMake('1234567890123456789012345678901234567890123456789012345678901234567890', b: 'abc');
         patchSplitMax(patches);
         expect(
-            patchToText(patches),
-            equals(
-                '@@ -1,32 +1,4 @@\n-1234567890123456789012345678\n 9012\n@@ -29,32 +1,4 @@\n-9012345678901234567890123456\n 7890\n@@ -57,14 +1,3 @@\n-78901234567890\n+abc\n'));
+          patchToText(patches),
+          equals(
+            '@@ -1,32 +1,4 @@\n-1234567890123456789012345678\n 9012\n@@ -29,32 +1,4 @@\n-9012345678901234567890123456\n 7890\n@@ -57,14 +1,3 @@\n-78901234567890\n+abc\n',
+          ),
+        );
       });
 
       test('#4', () {
-        var patches = patchMake('abcdefghij , h : 0 , t : 1 abcdefghij , h : 0 , t : 1 abcdefghij , h : 0 , t : 1',
-            b: 'abcdefghij , h : 1 , t : 1 abcdefghij , h : 1 , t : 1 abcdefghij , h : 0 , t : 1');
+        var patches = patchMake(
+          'abcdefghij , h : 0 , t : 1 abcdefghij , h : 0 , t : 1 abcdefghij , h : 0 , t : 1',
+          b: 'abcdefghij , h : 1 , t : 1 abcdefghij , h : 1 , t : 1 abcdefghij , h : 0 , t : 1',
+        );
         patchSplitMax(patches);
         expect(
-            patchToText(patches),
-            equals(
-                '@@ -2,32 +2,32 @@\n bcdefghij , h : \n-0\n+1\n  , t : 1 abcdef\n@@ -29,32 +29,32 @@\n bcdefghij , h : \n-0\n+1\n  , t : 1 abcdef\n'));
+          patchToText(patches),
+          equals(
+            '@@ -2,32 +2,32 @@\n bcdefghij , h : \n-0\n+1\n  , t : 1 abcdef\n@@ -29,32 +29,32 @@\n bcdefghij , h : \n-0\n+1\n  , t : 1 abcdef\n',
+          ),
+        );
       });
     });
 
@@ -247,8 +263,10 @@ main() {
       });
 
       test('Exact match', () {
-        var patches = patchMake('The quick brown fox jumps over the lazy dog.',
-            b: 'That quick brown fox jumped over a lazy dog.');
+        var patches = patchMake(
+          'The quick brown fox jumps over the lazy dog.',
+          b: 'That quick brown fox jumped over a lazy dog.',
+        );
         var results = patchApply(patches, 'The quick brown fox jumps over the lazy dog.');
         var boolArray = results[1];
         var resultStr = '${results[0]}\t${boolArray[0]}\t${boolArray[1]}';
@@ -256,8 +274,10 @@ main() {
       });
 
       test('Partial match', () {
-        var patches = patchMake('The quick brown fox jumps over the lazy dog.',
-            b: 'That quick brown fox jumped over a lazy dog.');
+        var patches = patchMake(
+          'The quick brown fox jumps over the lazy dog.',
+          b: 'That quick brown fox jumped over a lazy dog.',
+        );
         var results = patchApply(patches, 'The quick red rabbit jumps over the tired tiger.');
         var boolArray = results[1];
         var resultStr = '${results[0]}\t${boolArray[0]}\t${boolArray[1]}';
@@ -265,8 +285,10 @@ main() {
       });
 
       test('Failed match', () {
-        var patches = patchMake('The quick brown fox jumps over the lazy dog.',
-            b: 'That quick brown fox jumped over a lazy dog.');
+        var patches = patchMake(
+          'The quick brown fox jumps over the lazy dog.',
+          b: 'That quick brown fox jumped over a lazy dog.',
+        );
         var results = patchApply(patches, 'I am the very model of a modern major general.');
         var boolArray = results[1];
         var resultStr = '${results[0]}\t${boolArray[0]}\t${boolArray[1]}';
@@ -275,8 +297,10 @@ main() {
 
       test('Big delete, small change', () {
         var patches = patchMake('x1234567890123456789012345678901234567890123456789012345678901234567890y', b: 'xabcy');
-        var results =
-            patchApply(patches, 'x123456789012345678901234567890-----++++++++++-----123456789012345678901234567890y');
+        var results = patchApply(
+          patches,
+          'x123456789012345678901234567890-----++++++++++-----123456789012345678901234567890y',
+        );
         var boolArray = results[1];
         var resultStr = '${results[0]}\t${boolArray[0]}\t${boolArray[1]}';
         expect(resultStr, equals('xabcy\ttrue\ttrue'));
@@ -284,21 +308,30 @@ main() {
 
       test('Big delete, big change #1', () {
         var patches = patchMake('x1234567890123456789012345678901234567890123456789012345678901234567890y', b: 'xabcy');
-        var results =
-            patchApply(patches, 'x12345678901234567890---------------++++++++++---------------12345678901234567890y');
+        var results = patchApply(
+          patches,
+          'x12345678901234567890---------------++++++++++---------------12345678901234567890y',
+        );
         var boolArray = results[1];
         var resultStr = '${results[0]}\t${boolArray[0]}\t${boolArray[1]}';
-        expect(resultStr,
-            'xabc12345678901234567890---------------++++++++++---------------12345678901234567890y\tfalse\ttrue');
+        expect(
+          resultStr,
+          'xabc12345678901234567890---------------++++++++++---------------12345678901234567890y\tfalse\ttrue',
+        );
       });
 
       test('Big delete, big change #2', () {
         var deleteThreshold = 0.6;
-        var patches = patchMake('x1234567890123456789012345678901234567890123456789012345678901234567890y',
-            b: 'xabcy', deleteThreshold: deleteThreshold);
+        var patches = patchMake(
+          'x1234567890123456789012345678901234567890123456789012345678901234567890y',
+          b: 'xabcy',
+          deleteThreshold: deleteThreshold,
+        );
         var results = patchApply(
-            patches, 'x12345678901234567890---------------++++++++++---------------12345678901234567890y',
-            deleteThreshold: deleteThreshold);
+          patches,
+          'x12345678901234567890---------------++++++++++---------------12345678901234567890y',
+          deleteThreshold: deleteThreshold,
+        );
         var boolArray = results[1];
         var resultStr = '${results[0]}\t${boolArray[0]}\t${boolArray[1]}';
         expect(resultStr, equals('xabcy\ttrue\ttrue'));
@@ -307,10 +340,16 @@ main() {
       test('Compensate for failed patch', () {
         var matchThreshold = 0.0;
         var matchDistance = 0;
-        var patches = patchMake('abcdefghijklmnopqrstuvwxyz--------------------1234567890',
-            b: 'abcXXXXXXXXXXdefghijklmnopqrstuvwxyz--------------------1234567YYYYYYYYYY890');
-        var results = patchApply(patches, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ--------------------1234567890',
-            matchThreshold: matchThreshold, matchDistance: matchDistance);
+        var patches = patchMake(
+          'abcdefghijklmnopqrstuvwxyz--------------------1234567890',
+          b: 'abcXXXXXXXXXXdefghijklmnopqrstuvwxyz--------------------1234567YYYYYYYYYY890',
+        );
+        var results = patchApply(
+          patches,
+          'ABCDEFGHIJKLMNOPQRSTUVWXYZ--------------------1234567890',
+          matchThreshold: matchThreshold,
+          matchDistance: matchDistance,
+        );
         var boolArray = results[1];
         var resultStr = '${results[0]}\t${boolArray[0]}\t${boolArray[1]}';
         expect(resultStr, equals('ABCDEFGHIJKLMNOPQRSTUVWXYZ--------------------1234567YYYYYYYYYY890\tfalse\ttrue'));

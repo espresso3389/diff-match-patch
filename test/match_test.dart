@@ -1,7 +1,7 @@
 /// Tests for Match functions
 ///
 /// Copyright 2011 Google Inc.
-/// Copyright 2014 Boris Kaul <localvoid@gmail.com>
+/// Copyright 2014 Boris Kaul `<localvoid@gmail.com>`
 /// http://github.com/localvoid/diff-match-patch
 ///
 /// Licensed under the Apache License, Version 2.0 (the 'License');
@@ -15,26 +15,27 @@
 /// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
+library;
 
-import 'package:test/test.dart';
 import 'package:diff_match_patch/src/match.dart';
+import 'package:test/test.dart';
 
 // ignore: always_declare_return_types
 main() {
   group('Match', () {
     group('Alphabet', () {
-      void testMapEquals(Map a, Map b, String error_msg) {
-        test(error_msg, () {
+      void testMapEquals(Map a, Map b, String errorMsg) {
+        test(errorMsg, () {
           expect(a.keys, unorderedEquals(b.keys));
         });
         for (var x in a.keys) {
-          test('$error_msg [Key: $x]', () {
+          test('$errorMsg [Key: $x]', () {
             expect(a[x], equals(b[x]));
           });
         }
       }
 
-      // Initialise the bitmasks for Bitap.
+      // Initialize the bitmasks for Bitap.
       // ignore: omit_local_variable_types
       Map<String, int> bitmask = {'a': 4, 'b': 2, 'c': 1};
       testMapEquals(bitmask, matchAlphabet('abc'), 'Unique.');

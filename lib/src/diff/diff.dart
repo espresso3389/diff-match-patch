@@ -1,7 +1,7 @@
 /// Diff class
 ///
 /// Copyright 2011 Google Inc.
-/// Copyright 2014 Boris Kaul <localvoid@gmail.com>
+/// Copyright 2014 Boris Kaul `<localvoid@gmail.com>`
 /// http://github.com/localvoid/diff-match-patch
 ///
 /// Licensed under the Apache License, Version 2.0 (the 'License');
@@ -16,7 +16,7 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 
-part of diff;
+part of '../diff.dart';
 
 /// The data structure representing a diff is a List of Diff objects:
 ///
@@ -30,16 +30,15 @@ enum DiffOperation { delete, insert, equal }
 
 /// Class representing one diff operation.
 class Diff {
-  DiffOperation operation;
-
-  /// The text associated with this diff operation.
-  String text;
-
   /// Constructor.  Initializes the diff with the provided values.
   ///
   /// * [operation] is one of [DiffOperation] values.
   /// * [text] is the text being applied.
   Diff(this.operation, this.text);
+  DiffOperation operation;
+
+  /// The text associated with this diff operation.
+  String text;
 
   /// Display a human-readable version of this Diff.
   ///

@@ -1,7 +1,7 @@
 /// Half Match functions
 ///
 /// Copyright 2011 Google Inc.
-/// Copyright 2014 Boris Kaul <localvoid@gmail.com>
+/// Copyright 2014 Boris Kaul `<localvoid@gmail.com>`
 /// http://github.com/localvoid/diff-match-patch
 ///
 /// Licensed under the Apache License, Version 2.0 (the 'License');
@@ -16,7 +16,7 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 
-part of diff;
+part of '../diff.dart';
 
 /// Do the two texts share a substring which is at least half the length of
 /// the longer text?
@@ -34,16 +34,16 @@ List<String>? diffHalfMatch(String text1, String text2, double timeout) {
     // Don't risk returning a non-optimal diff if we have unlimited time.
     return null;
   }
-  final longtext = text1.length > text2.length ? text1 : text2;
-  final shorttext = text1.length > text2.length ? text2 : text1;
-  if (longtext.length < 4 || shorttext.length * 2 < longtext.length) {
+  final longText = text1.length > text2.length ? text1 : text2;
+  final shortText = text1.length > text2.length ? text2 : text1;
+  if (longText.length < 4 || shortText.length * 2 < longText.length) {
     return null; // Pointless.
   }
 
   // First check if the second quarter is the seed for a half-match.
-  final hm1 = _diffHalfMatchI(longtext, shorttext, ((longtext.length + 3) / 4).ceil().toInt());
+  final hm1 = _diffHalfMatchI(longText, shortText, ((longText.length + 3) / 4).ceil().toInt());
   // Check again based on the third quarter.
-  final hm2 = _diffHalfMatchI(longtext, shorttext, ((longtext.length + 1) / 2).ceil().toInt());
+  final hm2 = _diffHalfMatchI(longText, shortText, ((longText.length + 1) / 2).ceil().toInt());
   List<String>? hm;
   if (hm1 == null && hm2 == null) {
     return null;
@@ -65,37 +65,38 @@ List<String>? diffHalfMatch(String text1, String text2, double timeout) {
   }
 }
 
-/// Does a substring of [shorttext] exist within [longtext] such that the
-/// substring is at least half the length of [longtext]?
+/// Does a substring of [shortText] exist within [longText] such that the
+/// substring is at least half the length of [longText]?
 ///
-/// * [longtext] is the longer string.
-/// * [shorttext is the shorter string.
-/// * [i] Start index of quarter length substring within longtext.
+/// * [longText] is the longer string.
+/// * [shortText] is the shorter string.
+/// * [i] Start index of quarter length substring within [longText].
 ///
-/// Returns a five element String array, containing the prefix of [longtext],
-/// the suffix of [longtext], the prefix of [shorttext], the suffix of
-/// [shorttext] and the common middle.  Or null if there was no match.
-List<String>? _diffHalfMatchI(String longtext, String shorttext, int i) {
+/// Returns a five element String array, containing the prefix of [longText],
+/// the suffix of [longText], the prefix of [shortText], the suffix of
+/// [shortText] and the common middle.  Or null if there was no match.
+List<String>? _diffHalfMatchI(String longText, String shortText, int i) {
   // Start with a 1/4 length substring at position i as a seed.
-  final seed = longtext.substring(i, i + (longtext.length / 4).floor().toInt());
+  final seed = longText.substring(i, i + (longText.length / 4).floor().toInt());
   var j = -1;
-  var best_common = '';
-  var best_longtext_a = '', best_longtext_b = '';
-  var best_shorttext_a = '', best_shorttext_b = '';
-  while ((j = shorttext.indexOf(seed, j + 1)) != -1) {
-    var prefixLength = commonPrefix(longtext.substring(i), shorttext.substring(j));
-    var suffixLength = commonSuffix(longtext.substring(0, i), shorttext.substring(0, j));
-    if (best_common.length < suffixLength + prefixLength) {
-      best_common = '${shorttext.substring(j - suffixLength, j)}'
-          '${shorttext.substring(j, j + prefixLength)}';
-      best_longtext_a = longtext.substring(0, i - suffixLength);
-      best_longtext_b = longtext.substring(i + prefixLength);
-      best_shorttext_a = shorttext.substring(0, j - suffixLength);
-      best_shorttext_b = shorttext.substring(j + prefixLength);
+  var bestCommon = '';
+  var bestLongTextA = '', bestLongTextB = '';
+  var bestShortTextA = '', bestShortTextB = '';
+  while ((j = shortText.indexOf(seed, j + 1)) != -1) {
+    var prefixLength = calcCommonPrefix(longText.substring(i), shortText.substring(j));
+    var suffixLength = calcCommonSuffix(longText.substring(0, i), shortText.substring(0, j));
+    if (bestCommon.length < suffixLength + prefixLength) {
+      bestCommon =
+          '${shortText.substring(j - suffixLength, j)}'
+          '${shortText.substring(j, j + prefixLength)}';
+      bestLongTextA = longText.substring(0, i - suffixLength);
+      bestLongTextB = longText.substring(i + prefixLength);
+      bestShortTextA = shortText.substring(0, j - suffixLength);
+      bestShortTextB = shortText.substring(j + prefixLength);
     }
   }
-  if (best_common.length * 2 >= longtext.length) {
-    return [best_longtext_a, best_longtext_b, best_shorttext_a, best_shorttext_b, best_common];
+  if (bestCommon.length * 2 >= longText.length) {
+    return [bestLongTextA, bestLongTextB, bestShortTextA, bestShortTextB, bestCommon];
   } else {
     return null;
   }

@@ -1,7 +1,32 @@
 {
     "cSpell.words": [
-        "Bitap",
-        "jheyne",
-        "localvoid"
-    ]
+      "behaviour",
+      "Bitap",
+      "bitmasks",
+      "jheyne",
+      "Kaul",
+      "localvoid",
+      "postcontext",
+      "postpatch",
+      "precontext",
+      "prepatch",
+      "rediff",
+      "Unidiff"
+    ],
+    "cSpell.ignorePaths": [
+      "test/diff_test.dart",
+      "test/match_test.dart",
+      "test/patch_test.dart"
+    ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "dart.lineLength": 120,
+  "dart.projectSearchDepth": 5,
+  "[dart]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.rulers": [120]
+  }
 }

@@ -1,5 +1,5 @@
 /// Copyright 2011 Google Inc.
-/// Copyright 2014 Boris Kaul <localvoid@gmail.com>
+/// Copyright 2014 Boris Kaul `<localvoid@gmail.com>`
 /// http://github.com/localvoid/diff-match-patch
 ///
 /// Licensed under the Apache License, Version 2.0 (the 'License');
@@ -14,6 +14,6 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 
-library _common;
+library;
 
-const int BITS_PER_INT = 32;
+const int bitsPerInt = 32;

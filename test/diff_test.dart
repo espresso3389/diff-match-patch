@@ -1,7 +1,7 @@
 /// Tests for Diff functions
 ///
 /// Copyright 2011 Google Inc.
-/// Copyright 2014 Boris Kaul <localvoid@gmail.com>
+/// Copyright 2014 Boris Kaul `<localvoid@gmail.com>`
 /// http://github.com/localvoid/diff-match-patch
 ///
 /// Licensed under the Apache License, Version 2.0 (the 'License');
@@ -15,9 +15,10 @@
 /// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
+library;
 
-import 'package:test/test.dart';
 import 'package:diff_match_patch/src/diff.dart';
+import 'package:test/test.dart';
 
 Diff deq(String t) => Diff(DiffOperation.equal, t);
 Diff ddel(String t) => Diff(DiffOperation.delete, t);
@@ -43,43 +44,43 @@ main() {
   group('Diff', () {
     group('Common Prefix', () {
       test('Null', () {
-        expect(commonPrefix('abc', 'xyz'), equals(0));
+        expect(calcCommonPrefix('abc', 'xyz'), equals(0));
       });
       test('Non-null', () {
-        expect(commonPrefix('1234abcdef', '1234xyz'), equals(4));
+        expect(calcCommonPrefix('1234abcdef', '1234xyz'), equals(4));
       });
       test('Whole', () {
-        expect(commonPrefix('1234', '1234xyz'), equals(4));
+        expect(calcCommonPrefix('1234', '1234xyz'), equals(4));
       });
     });
 
     group('Common Suffix', () {
       test('Null', () {
-        expect(commonSuffix('abc', 'xyz'), equals(0));
+        expect(calcCommonSuffix('abc', 'xyz'), equals(0));
       });
       test('Non-null', () {
-        expect(commonSuffix('abcdef1234', 'xyz1234'), equals(4));
+        expect(calcCommonSuffix('abcdef1234', 'xyz1234'), equals(4));
       });
       test('Whole', () {
-        expect(commonSuffix('1234', 'xyz1234'), equals(4));
+        expect(calcCommonSuffix('1234', 'xyz1234'), equals(4));
       });
     });
 
     group('Common Overlap', () {
       test('Null', () {
-        expect(commonOverlap('', 'abcd'), equals(0));
+        expect(calcCommonOverlap('', 'abcd'), equals(0));
       });
       test('Whole', () {
-        expect(commonOverlap('abc', 'abcd'), equals(3));
+        expect(calcCommonOverlap('abc', 'abcd'), equals(3));
       });
       test('No overlap', () {
-        expect(commonOverlap('123456', 'abcd'), equals(0));
+        expect(calcCommonOverlap('123456', 'abcd'), equals(0));
       });
       test('Overlap', () {
-        expect(commonOverlap('123456xxx', 'xxxabcd'), equals(3));
+        expect(calcCommonOverlap('123456xxx', 'xxxabcd'), equals(3));
       });
       test('Unicode', () {
-        expect(commonOverlap('fi', '\ufb01i'), equals(0));
+        expect(calcCommonOverlap('fi', '\ufb01i'), equals(0));
       });
     });
 
@@ -103,21 +104,29 @@ main() {
         expect(diffHalfMatch('a23456xyz', '1234567890', 1.0), equals(['a', 'xyz', '1', '7890', '23456']));
       });
       test('Multiple matches #1', () {
-        expect(diffHalfMatch('121231234123451234123121', 'a1234123451234z', 1.0),
-            equals(['12123', '123121', 'a', 'z', '1234123451234']));
+        expect(
+          diffHalfMatch('121231234123451234123121', 'a1234123451234z', 1.0),
+          equals(['12123', '123121', 'a', 'z', '1234123451234']),
+        );
       });
       test('Multiple matches #2', () {
-        expect(diffHalfMatch('x-=-=-=-=-=-=-=-=-=-=-=-=', 'xx-=-=-=-=-=-=-=', 1.0),
-            equals(['', '-=-=-=-=-=', 'x', '', 'x-=-=-=-=-=-=-=']));
+        expect(
+          diffHalfMatch('x-=-=-=-=-=-=-=-=-=-=-=-=', 'xx-=-=-=-=-=-=-=', 1.0),
+          equals(['', '-=-=-=-=-=', 'x', '', 'x-=-=-=-=-=-=-=']),
+        );
       });
       test('Multiple matches #3', () {
-        expect(diffHalfMatch('-=-=-=-=-=-=-=-=-=-=-=-=y', '-=-=-=-=-=-=-=yy', 1.0),
-            equals(['-=-=-=-=-=', '', '', 'y', '-=-=-=-=-=-=-=y']));
+        expect(
+          diffHalfMatch('-=-=-=-=-=-=-=-=-=-=-=-=y', '-=-=-=-=-=-=-=yy', 1.0),
+          equals(['-=-=-=-=-=', '', '', 'y', '-=-=-=-=-=-=-=y']),
+        );
       });
       test('Non-optimal halfmatch', () {
         // Optimal diff would be -q+x=H-i+e=lloHe+Hu=llo-Hew+y not -qHillo+x=HelloHe-w+Hulloy
         expect(
-            diffHalfMatch('qHilloHelloHew', 'xHelloHeHulloy', 1.0), equals(['qHillo', 'w', 'x', 'Hulloy', 'HelloHe']));
+          diffHalfMatch('qHilloHelloHew', 'xHelloHeHulloy', 1.0),
+          equals(['qHillo', 'w', 'x', 'Hulloy', 'HelloHe']),
+        );
       });
       test('Optimal no halfmatch', () {
         expect(diffHalfMatch('qHilloHelloHew', 'xHelloHeHulloy', 0.0), isNull);
@@ -136,21 +145,21 @@ main() {
         testLinesToCharsResultEquals({
           'chars1': '\u0001\u0002\u0001',
           'chars2': '\u0002\u0001\u0002',
-          'lineArray': ['', 'alpha\n', 'beta\n']
+          'lineArray': ['', 'alpha\n', 'beta\n'],
         }, linesToChars('alpha\nbeta\nalpha\n', 'beta\nalpha\nbeta\n'));
       });
       test('Empty string and blank lines', () {
         testLinesToCharsResultEquals({
           'chars1': '',
           'chars2': '\u0001\u0002\u0003\u0003',
-          'lineArray': ['', 'alpha\r\n', 'beta\r\n', '\r\n']
+          'lineArray': ['', 'alpha\r\n', 'beta\r\n', '\r\n'],
         }, linesToChars('', 'alpha\r\nbeta\r\n\r\n\r\n'));
       });
       test('No linebreaks', () {
         testLinesToCharsResultEquals({
           'chars1': '\u0001',
           'chars2': '\u0002',
-          'lineArray': ['', 'a', 'b']
+          'lineArray': ['', 'a', 'b'],
         }, linesToChars('a', 'b'));
       });
 
@@ -351,7 +360,7 @@ main() {
           dins('1'),
           deq('A'),
           ddel('B'),
-          dins('2')
+          dins('2'),
         ];
         cleanupSemantic(diffs);
         expect(diffs, equals([ddel('AB_AB'), dins('1A2_1A2')]));
@@ -437,7 +446,7 @@ main() {
         ddel('the'),
         dins('a'),
         deq(' lazy'),
-        dins('old dog')
+        dins('old dog'),
       ];
       test('Base text', () {
         expect(diffText1(diffs), equals('jumps over the lazy'));
@@ -531,64 +540,79 @@ main() {
 
     group('Main', () {
       test('Null', () {
-        expect(diff('', '', checklines: false), equals([]));
+        expect(diff('', '', checkLines: false), equals([]));
       });
       test('Equality', () {
-        expect(diff('abc', 'abc', checklines: false), equals([deq('abc')]));
+        expect(diff('abc', 'abc', checkLines: false), equals([deq('abc')]));
       });
       test('Simple insertion', () {
-        expect(diff('abc', 'ab123c', checklines: false), equals([deq('ab'), dins('123'), deq('c')]));
+        expect(diff('abc', 'ab123c', checkLines: false), equals([deq('ab'), dins('123'), deq('c')]));
       });
       test('Simple deletion', () {
-        expect(diff('a123bc', 'abc', checklines: false), equals([deq('a'), ddel('123'), deq('bc')]));
+        expect(diff('a123bc', 'abc', checkLines: false), equals([deq('a'), ddel('123'), deq('bc')]));
       });
       test('Two insertions', () {
-        expect(diff('abc', 'a123b456c', checklines: false),
-            equals([deq('a'), dins('123'), deq('b'), dins('456'), deq('c')]));
+        expect(
+          diff('abc', 'a123b456c', checkLines: false),
+          equals([deq('a'), dins('123'), deq('b'), dins('456'), deq('c')]),
+        );
       });
       test('Two deletions', () {
-        expect(diff('a123b456c', 'abc', checklines: false),
-            equals([deq('a'), ddel('123'), deq('b'), ddel('456'), deq('c')]));
+        expect(
+          diff('a123b456c', 'abc', checkLines: false),
+          equals([deq('a'), ddel('123'), deq('b'), ddel('456'), deq('c')]),
+        );
       });
       test('Simple case #1', () {
-        expect(diff('a', 'b', checklines: false, timeout: 0.0), equals([ddel('a'), dins('b')]));
+        expect(diff('a', 'b', checkLines: false, timeout: 0.0), equals([ddel('a'), dins('b')]));
       });
 
       test('Simple case #2', () {
-        expect(diff('Apples are a fruit.', 'Bananas are also fruit.', checklines: false, timeout: 0.0),
-            equals([ddel('Apple'), dins('Banana'), deq('s are a'), dins('lso'), deq(' fruit.')]));
+        expect(
+          diff('Apples are a fruit.', 'Bananas are also fruit.', checkLines: false, timeout: 0.0),
+          equals([ddel('Apple'), dins('Banana'), deq('s are a'), dins('lso'), deq(' fruit.')]),
+        );
       });
 
       test('Simple case #3', () {
-        expect(diff('ax\t', '\u0680x\000', checklines: false, timeout: 0.0),
-            equals([ddel('a'), dins('\u0680'), deq('x'), ddel('\t'), dins('\000')]));
+        expect(
+          diff('ax\t', '\u0680x000', checkLines: false, timeout: 0.0),
+          equals([ddel('a'), dins('\u0680'), deq('x'), ddel('\t'), dins('000')]),
+        );
       });
       test('Overlap #1', () {
-        expect(diff('1ayb2', 'abxab', checklines: false, timeout: 0.0),
-            equals([ddel('1'), deq('a'), ddel('y'), deq('b'), ddel('2'), dins('xab')]));
+        expect(
+          diff('1ayb2', 'abxab', checkLines: false, timeout: 0.0),
+          equals([ddel('1'), deq('a'), ddel('y'), deq('b'), ddel('2'), dins('xab')]),
+        );
       });
       test('Overlap #2', () {
         expect(
-            diff('abcy', 'xaxcxabc', checklines: false, timeout: 0.0), equals([dins('xaxcx'), deq('abc'), ddel('y')]));
+          diff('abcy', 'xaxcxabc', checkLines: false, timeout: 0.0),
+          equals([dins('xaxcx'), deq('abc'), ddel('y')]),
+        );
       });
       test('Overlap #3', () {
         expect(
-            diff('ABCDa=bcd=efghijklmnopqrsEFGHIJKLMNOefg', 'a-bcd-efghijklmnopqrs', checklines: false, timeout: 0.0),
-            equals([
-              ddel('ABCD'),
-              deq('a'),
-              ddel('='),
-              dins('-'),
-              deq('bcd'),
-              ddel('='),
-              dins('-'),
-              deq('efghijklmnopqrs'),
-              ddel('EFGHIJKLMNOefg')
-            ]));
+          diff('ABCDa=bcd=efghijklmnopqrsEFGHIJKLMNOefg', 'a-bcd-efghijklmnopqrs', checkLines: false, timeout: 0.0),
+          equals([
+            ddel('ABCD'),
+            deq('a'),
+            ddel('='),
+            dins('-'),
+            deq('bcd'),
+            ddel('='),
+            dins('-'),
+            deq('efghijklmnopqrs'),
+            ddel('EFGHIJKLMNOefg'),
+          ]),
+        );
       });
       test('Large equality', () {
-        expect(diff('a [[Pennsylvania]] and [[New', ' and [[Pennsylvania]]', checklines: false, timeout: 0.0),
-            equals([dins(' '), deq('a'), dins('nd'), deq(' [[Pennsylvania]]'), ddel(' and [[New')]));
+        expect(
+          diff('a [[Pennsylvania]] and [[New', ' and [[Pennsylvania]]', checkLines: false, timeout: 0.0),
+          equals([dins(' '), deq('a'), dins('nd'), deq(' [[Pennsylvania]]'), ddel(' and [[New')]),
+        );
       });
 
       // Test the linemode speedup.
@@ -598,7 +622,7 @@ main() {
             '1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n';
         var b =
             'abcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\n';
-        expect(diff(a, b, timeout: 0.0), equals(diff(a, b, checklines: false)));
+        expect(diff(a, b, timeout: 0.0), equals(diff(a, b, checkLines: false)));
       });
 
       test('Single line-mode', () {
@@ -606,7 +630,7 @@ main() {
             '1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890';
         var b =
             'abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij';
-        expect(diff(a, b, timeout: 0.0), equals(diff(a, b, checklines: false)));
+        expect(diff(a, b, timeout: 0.0), equals(diff(a, b, checkLines: false)));
       });
 
       test('Overlap line-mode', () {
@@ -614,9 +638,9 @@ main() {
             '1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n';
         var b =
             'abcdefghij\n1234567890\n1234567890\n1234567890\nabcdefghij\n1234567890\n1234567890\n1234567890\nabcdefghij\n1234567890\n1234567890\n1234567890\nabcdefghij\n';
-        var texts_linemode = _rebuildTexts(diff(a, b));
-        var texts_textmode = _rebuildTexts(diff(a, b, checklines: false));
-        expect(texts_textmode, equals(texts_linemode));
+        var textsLinemode = _rebuildTexts(diff(a, b));
+        var textsTextmode = _rebuildTexts(diff(a, b, checkLines: false));
+        expect(textsTextmode, equals(textsLinemode));
       });
 
       test('Timeout min', () {

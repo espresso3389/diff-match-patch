@@ -1,7 +1,7 @@
 /// Delta functions
 ///
 /// Copyright 2011 Google Inc.
-/// Copyright 2014 Boris Kaul <localvoid@gmail.com>
+/// Copyright 2014 Boris Kaul `<localvoid@gmail.com>`
 /// http://github.com/localvoid/diff-match-patch
 ///
 /// Licensed under the Apache License, Version 2.0 (the 'License');
@@ -16,7 +16,7 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 
-part of diff;
+part of '../diff.dart';
 
 ///  Crush the diff into an encoded String which describes the operations
 ///  required to transform text1 into text2.
@@ -110,8 +110,10 @@ List<Diff> fromDelta(String text1, String delta) {
         try {
           text = text1.substring(pointer, pointer += n);
         } on RangeError {
-          throw ArgumentError('Delta length ($pointer)'
-              ' larger than source text length (${text1.length}).');
+          throw ArgumentError(
+            'Delta length ($pointer)'
+            ' larger than source text length (${text1.length}).',
+          );
         }
         if (token[0] == '=') {
           diffs.add(Diff(DiffOperation.equal, text));
@@ -125,8 +127,10 @@ List<Diff> fromDelta(String text1, String delta) {
     }
   }
   if (pointer != text1.length) {
-    throw ArgumentError('Delta length ($pointer)'
-        ' smaller than source text length (${text1.length}).');
+    throw ArgumentError(
+      'Delta length ($pointer)'
+      ' smaller than source text length (${text1.length}).',
+    );
   }
   return diffs;
 }

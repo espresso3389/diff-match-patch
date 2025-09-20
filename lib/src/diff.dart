@@ -1,5 +1,5 @@
 /// Copyright 2011 Google Inc.
-/// Copyright 2014 Boris Kaul <localvoid@gmail.com>
+/// Copyright 2014 Boris Kaul `<localvoid@gmail.com>`
 /// http://github.com/localvoid/diff-match-patch
 ///
 /// Licensed under the Apache License, Version 2.0 (the 'License');
@@ -14,14 +14,14 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 
-library diff;
+library;
 
 import 'dart:collection';
 import 'dart:math';
 
-part 'package:diff_match_patch/src/diff/utils.dart';
-part 'package:diff_match_patch/src/diff/diff.dart';
-part 'package:diff_match_patch/src/diff/cleanup.dart';
-part 'package:diff_match_patch/src/diff/half_match.dart';
-part 'package:diff_match_patch/src/diff/delta.dart';
-part 'package:diff_match_patch/src/diff/main.dart';
+part 'diff/cleanup.dart';
+part 'diff/delta.dart';
+part 'diff/diff.dart';
+part 'diff/half_match.dart';
+part 'diff/main.dart';
+part 'diff/utils.dart';

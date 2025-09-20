@@ -1,5 +1,5 @@
 /// Copyright 2011 Google Inc.
-/// Copyright 2014 Boris Kaul <localvoid@gmail.com>
+/// Copyright 2014 Boris Kaul `<localvoid@gmail.com>`
 /// http://github.com/localvoid/diff-match-patch
 ///
 /// Licensed under the Apache License, Version 2.0 (the 'License');
@@ -14,11 +14,11 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 
-library api;
+library;
 
-import 'package:diff_match_patch/src/diff.dart' as d;
-import 'package:diff_match_patch/src/match.dart' as m;
-import 'package:diff_match_patch/src/patch.dart' as p;
+import 'diff.dart' as d;
+import 'match.dart' as m;
+import 'patch.dart' as p;
 
 /// Class containing the [diff], [match] and [patch] methods.
 /// Also contains the behaviour settings.
@@ -54,15 +54,15 @@ class DiffMatchPatch {
   ///
   /// * [text1] is the old string to be diffed.
   /// * [text2] is the new string to be diffed.
-  /// * [checklines] is an optional speedup flag.  If false, then don't
+  /// * [checkLines] is an optional speedup flag.  If false, then don't
   ///   run a line-level diff first to identify the changed areas.
   ///   Defaults to true, which does a faster, slightly less optimal diff.
   /// * [deadline] is an optional time when the diff should be complete by.  Used
   ///   internally for recursive calls.  Users should set [diffTimeout] instead.
   ///
-  /// Returns a List of [Diff] objects.
-  List<d.Diff> diff(String text1, String text2, [bool checklines = true, DateTime? deadline]) {
-    return d.diff(text1, text2, checklines: checklines, deadline: deadline, timeout: diffTimeout);
+  /// Returns a List of [d.Diff] objects.
+  List<d.Diff> diff(String text1, String text2, [bool checkLines = true, DateTime? deadline]) {
+    return d.diff(text1, text2, checkLines: checkLines, deadline: deadline, timeout: diffTimeout);
   }
 
   /// Reduce the number of edits by eliminating semantically trivial equalities.
@@ -85,7 +85,7 @@ class DiffMatchPatch {
   /// [diffs] is a List of Diff objects.
   ///
   /// Returns the number of changes.
-  int diff_levenshtein(List<d.Diff> diffs) {
+  int diffLevenshtein(List<d.Diff> diffs) {
     return d.levenshtein(diffs);
   }
 
@@ -108,23 +108,25 @@ class DiffMatchPatch {
   /// available to the caller:
   ///
   /// * Method 1:
-  ///   [a] = text1, [opt_b] = text2
+  ///   [a] = text1, [optB] = text2
   /// * Method 2:
   ///   [a] = diffs
   /// * Method 3 (optimal):
-  ///   [a] = text1, [opt_b] = diffs
+  ///   [a] = text1, [optB] = diffs
   /// * Method 4 (deprecated, use method 3):
-  ///   [a] = text1, [opt_b] = text2, [opt_c] = diffs
+  ///   [a] = text1, [optB] = text2, [optC] = diffs
   ///
   /// Returns a List of Patch objects.
-  List<p.Patch> patch(Object a, [Object? opt_b, Object? opt_c]) {
-    return p.patchMake(a,
-        b: opt_b,
-        c: opt_c,
-        diffTimeout: diffTimeout,
-        diffEditCost: diffEditCost,
-        deleteThreshold: patchDeleteThreshold,
-        margin: patchMargin);
+  List<p.Patch> patch(Object a, [Object? optB, Object? optC]) {
+    return p.patchMake(
+      a,
+      b: optB,
+      c: optC,
+      diffTimeout: diffTimeout,
+      diffEditCost: diffEditCost,
+      deleteThreshold: patchDeleteThreshold,
+      margin: patchMargin,
+    );
   }
 
   /// Merge a set of patches onto the text.  Return a patched text, as well
@@ -135,8 +137,13 @@ class DiffMatchPatch {
   ///
   /// Returns a two element List, containing the new text and a List of
   ///      bool values.
-  List patch_apply(List<p.Patch> patches, String text) {
-    return p.patchApply(patches, text,
-        diffTimeout: diffTimeout, deleteThreshold: patchDeleteThreshold, margin: patchMargin);
+  List patchApply(List<p.Patch> patches, String text) {
+    return p.patchApply(
+      patches,
+      text,
+      diffTimeout: diffTimeout,
+      deleteThreshold: patchDeleteThreshold,
+      margin: patchMargin,
+    );
   }
 }

@@ -1,7 +1,7 @@
 /// Misc functions
 ///
 /// Copyright 2011 Google Inc.
-/// Copyright 2014 Boris Kaul <localvoid@gmail.com>
+/// Copyright 2014 Boris Kaul `<localvoid@gmail.com>`
 /// http://github.com/localvoid/diff-match-patch
 ///
 /// Licensed under the Apache License, Version 2.0 (the 'License');
@@ -16,7 +16,7 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 
-part of diff;
+part of '../diff.dart';
 
 /// Split a text into a list of strings.  Reduce the texts to a string of
 /// hashes where each Unicode character represents one line.
@@ -65,8 +65,8 @@ String _linesToCharsMunge(String text, List<String> lineArray, Map<String, int> 
 Map<String, dynamic> linesToChars(String text1, String text2) {
   final lineArray = <String>[];
   final lineHash = HashMap<String, int>();
-  // e.g. linearray[4] == 'Hello\n'
-  // e.g. linehash['Hello\n'] == 4
+  // e.g. lineArray[4] == 'Hello\n'
+  // e.g. lineHash['Hello\n'] == 4
 
   // '\x00' is a valid character, but various debuggers don't like it.
   // So we'll insert a junk entry to avoid generating a null character.
@@ -99,7 +99,7 @@ void charsToLines(List<Diff> diffs, List<String> lineArray) {
 /// * [text2] is the second string.
 ///
 /// Returns the number of characters common to the start of each string.
-int commonPrefix(String text1, String text2) {
+int calcCommonPrefix(String text1, String text2) {
   // TODO: Once Dart's performance stabilizes, determine if linear or binary
   // search is better.
   // Performance analysis: http://neil.fraser.name/news/2007/10/09/
@@ -118,15 +118,15 @@ int commonPrefix(String text1, String text2) {
 /// * [text2] is the second string.
 ///
 /// Returns the number of characters common to the end of each string.
-int commonSuffix(String text1, String text2) {
+int calcCommonSuffix(String text1, String text2) {
   // TODO: Once Dart's performance stabilizes, determine if linear or binary
   // search is better.
   // Performance analysis: http://neil.fraser.name/news/2007/10/09/
-  final text1_length = text1.length;
-  final text2_length = text2.length;
-  final n = min(text1_length, text2_length);
+  final text1Length = text1.length;
+  final text2Length = text2.length;
+  final n = min(text1Length, text2Length);
   for (var i = 1; i <= n; i++) {
-    if (text1[text1_length - i] != text2[text2_length - i]) {
+    if (text1[text1Length - i] != text2[text2Length - i]) {
       return i - 1;
     }
   }
@@ -140,24 +140,24 @@ int commonSuffix(String text1, String text2) {
 ///
 /// Returns the number of characters common to the end of the first
 /// string and the start of the second string.
-int commonOverlap(String text1, String text2) {
+int calcCommonOverlap(String text1, String text2) {
   // Eliminate the null case.
   if (text1.isEmpty || text2.isEmpty) {
     return 0;
   }
   // Cache the text lengths to prevent multiple calls.
-  final text1_length = text1.length;
-  final text2_length = text2.length;
+  final text1Length = text1.length;
+  final text2Length = text2.length;
   // Truncate the longer string.
-  if (text1_length > text2_length) {
-    text1 = text1.substring(text1_length - text2_length);
-  } else if (text1_length < text2_length) {
-    text2 = text2.substring(0, text1_length);
+  if (text1Length > text2Length) {
+    text1 = text1.substring(text1Length - text2Length);
+  } else if (text1Length < text2Length) {
+    text2 = text2.substring(0, text1Length);
   }
-  final text_length = min(text1_length, text2_length);
+  final textLength = min(text1Length, text2Length);
   // Quick check for the worst case.
   if (text1 == text2) {
-    return text_length;
+    return textLength;
   }
 
   // Start by looking for a single character match
@@ -166,13 +166,13 @@ int commonOverlap(String text1, String text2) {
   var best = 0;
   var length = 1;
   while (true) {
-    var pattern = text1.substring(text_length - length);
+    var pattern = text1.substring(textLength - length);
     var found = text2.indexOf(pattern);
     if (found == -1) {
       return best;
     }
     length += found;
-    if (found == 0 || text1.substring(text_length - length) == text2.substring(0, length)) {
+    if (found == 0 || text1.substring(textLength - length) == text2.substring(0, length)) {
       best = length;
       length++;
     }
@@ -221,8 +221,8 @@ int levenshtein(List<Diff> diffs) {
 int diffXIndex(List<Diff> diffs, int loc) {
   var chars1 = 0;
   var chars2 = 0;
-  var last_chars1 = 0;
-  var last_chars2 = 0;
+  var lastChars1 = 0;
+  var lastChars2 = 0;
   Diff? lastDiff;
   for (var aDiff in diffs) {
     if (aDiff.operation != DiffOperation.insert) {
@@ -238,15 +238,15 @@ int diffXIndex(List<Diff> diffs, int loc) {
       lastDiff = aDiff;
       break;
     }
-    last_chars1 = chars1;
-    last_chars2 = chars2;
+    lastChars1 = chars1;
+    lastChars2 = chars2;
   }
   if (lastDiff != null && lastDiff.operation == DiffOperation.delete) {
     // The location was deleted.
-    return last_chars2;
+    return lastChars2;
   }
   // Add the remaining character length.
-  return last_chars2 + (loc - last_chars1);
+  return lastChars2 + (loc - lastChars1);
 }
 
 /// Compute and return the source text (all equalities and deletions).
