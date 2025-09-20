@@ -33,8 +33,7 @@ import 'package:diff_match_patch/src/common.dart';
 ///   add 1.0 to the score (0.0 is a perfect match).
 ///
 /// Returns the best match index or -1.
-int match(String text, String pattern, int loc,
-    {double threshold = 0.5, int distance = 1000}) {
+int match(String text, String pattern, int loc, {double threshold = 0.5, int distance = 1000}) {
   loc = max(0, min(loc, text.length));
   if (text == pattern) {
     // Shortcut (potentially not guaranteed by the algorithm)
@@ -42,8 +41,7 @@ int match(String text, String pattern, int loc,
   } else if (text.isEmpty) {
     // Nothing to match.
     return -1;
-  } else if (loc + pattern.length <= text.length &&
-      text.substring(loc, loc + pattern.length) == pattern) {
+  } else if (loc + pattern.length <= text.length && text.substring(loc, loc + pattern.length) == pattern) {
     // Perfect match at the perfect spot!  (Includes case of null pattern)
     return loc;
   } else {
@@ -86,8 +84,7 @@ double _bitapScore(int e, int x, int loc, String pattern, int distance) {
 ///   add 1.0 to the score (0.0 is a perfect match).
 ///
 /// Returns the best match index or -1.
-int matchBitap(
-    String text, String pattern, int loc, double threshold, int distance) {
+int matchBitap(String text, String pattern, int loc, double threshold, int distance) {
   // Pattern too long for this application.
   assert(BITS_PER_INT == 0 || pattern.length <= BITS_PER_INT);
 
@@ -100,13 +97,11 @@ int matchBitap(
   // Is there a nearby exact match? (speedup)
   var best_loc = text.indexOf(pattern, loc);
   if (best_loc != -1) {
-    score_threshold =
-        min(_bitapScore(0, best_loc, loc, pattern, distance), score_threshold);
+    score_threshold = min(_bitapScore(0, best_loc, loc, pattern, distance), score_threshold);
     // What about in the other direction? (speedup)
     best_loc = text.lastIndexOf(pattern, loc + pattern.length);
     if (best_loc != -1) {
-      score_threshold = min(
-          _bitapScore(0, best_loc, loc, pattern, distance), score_threshold);
+      score_threshold = min(_bitapScore(0, best_loc, loc, pattern, distance), score_threshold);
     }
   }
 
@@ -124,8 +119,7 @@ int matchBitap(
     bin_min = 0;
     bin_mid = bin_max;
     while (bin_min < bin_mid) {
-      if (_bitapScore(d, loc + bin_mid, loc, pattern, distance) <=
-          score_threshold) {
+      if (_bitapScore(d, loc + bin_mid, loc, pattern, distance) <= score_threshold) {
         bin_min = bin_mid;
       } else {
         bin_max = bin_mid;
@@ -152,9 +146,7 @@ int matchBitap(
         rd[j] = ((rd[j + 1] << 1) | 1) & charMatch;
       } else {
         // Subsequent passes: fuzzy match.
-        rd[j] = ((rd[j + 1] << 1) | 1) & charMatch |
-            (((last_rd[j + 1] | last_rd[j]) << 1) | 1) |
-            last_rd[j + 1];
+        rd[j] = ((rd[j + 1] << 1) | 1) & charMatch | (((last_rd[j + 1] | last_rd[j]) << 1) | 1) | last_rd[j + 1];
       }
       if ((rd[j] & match_mask) != 0) {
         var score = _bitapScore(d, j - 1, loc, pattern, distance);

@@ -32,8 +32,7 @@ part of diff;
 ///   internally for recursive calls.  Users should set [diffTimeout] instead.
 ///
 /// Returns a List of Diff objects.
-List<Diff> diff(String text1, String text2,
-    {double timeout = 1.0, bool checklines = true, DateTime? deadline}) {
+List<Diff> diff(String text1, String text2, {double timeout = 1.0, bool checklines = true, DateTime? deadline}) {
   // Set a deadline by which time the diff must be complete.
   if (deadline == null) {
     deadline = DateTime.now();
@@ -50,7 +49,7 @@ List<Diff> diff(String text1, String text2,
   if (text1 == text2) {
     diffs = [];
     if (text1.isNotEmpty) {
-      diffs.add(Diff(DIFF_EQUAL, text1));
+      diffs.add(Diff(DiffOperation.equal, text1));
     }
     return diffs;
   }
@@ -72,10 +71,10 @@ List<Diff> diff(String text1, String text2,
 
   // Restore the prefix and suffix.
   if (commonprefix.isNotEmpty) {
-    diffs.insert(0, Diff(DIFF_EQUAL, commonprefix));
+    diffs.insert(0, Diff(DiffOperation.equal, commonprefix));
   }
   if (commonsuffix.isNotEmpty) {
-    diffs.add(Diff(DIFF_EQUAL, commonsuffix));
+    diffs.add(Diff(DiffOperation.equal, commonsuffix));
   }
 
   cleanupMerge(diffs);
@@ -95,19 +94,18 @@ List<Diff> diff(String text1, String text2,
 /// * [deadline] is the time when the diff should be complete by.
 ///
 /// Returns a List of Diff objects.
-List<Diff> _diffCompute(String text1, String text2, double timeout,
-    bool checklines, DateTime? deadline) {
+List<Diff> _diffCompute(String text1, String text2, double timeout, bool checklines, DateTime? deadline) {
   var diffs = <Diff>[];
 
   if (text1.isEmpty) {
     // Just add some text (speedup).
-    diffs.add(Diff(DIFF_INSERT, text2));
+    diffs.add(Diff(DiffOperation.insert, text2));
     return diffs;
   }
 
   if (text2.isEmpty) {
     // Just delete some text (speedup).
-    diffs.add(Diff(DIFF_DELETE, text1));
+    diffs.add(Diff(DiffOperation.delete, text1));
     return diffs;
   }
 
@@ -116,9 +114,9 @@ List<Diff> _diffCompute(String text1, String text2, double timeout,
   var i = longtext.indexOf(shorttext);
   if (i != -1) {
     // Shorter text is inside the longer text (speedup).
-    var op = (text1.length > text2.length) ? DIFF_DELETE : DIFF_INSERT;
+    var op = (text1.length > text2.length) ? DiffOperation.delete : DiffOperation.insert;
     diffs.add(Diff(op, longtext.substring(0, i)));
-    diffs.add(Diff(DIFF_EQUAL, shorttext));
+    diffs.add(Diff(DiffOperation.equal, shorttext));
     diffs.add(Diff(op, longtext.substring(i + shorttext.length)));
     return diffs;
   }
@@ -126,8 +124,8 @@ List<Diff> _diffCompute(String text1, String text2, double timeout,
   if (shorttext.length == 1) {
     // Single character string.
     // After the previous speedup, the character can't be an equality.
-    diffs.add(Diff(DIFF_DELETE, text1));
-    diffs.add(Diff(DIFF_INSERT, text2));
+    diffs.add(Diff(DiffOperation.delete, text1));
+    diffs.add(Diff(DiffOperation.insert, text2));
     return diffs;
   }
 
@@ -141,13 +139,11 @@ List<Diff> _diffCompute(String text1, String text2, double timeout,
     final text2_b = hm[3];
     final mid_common = hm[4];
     // Send both pairs off for separate processing.
-    final diffs_a = diff(text1_a, text2_a,
-        timeout: timeout, checklines: checklines, deadline: deadline);
-    final diffs_b = diff(text1_b, text2_b,
-        timeout: timeout, checklines: checklines, deadline: deadline);
+    final diffs_a = diff(text1_a, text2_a, timeout: timeout, checklines: checklines, deadline: deadline);
+    final diffs_b = diff(text1_b, text2_b, timeout: timeout, checklines: checklines, deadline: deadline);
     // Merge the results.
     diffs = diffs_a;
-    diffs.add(Diff(DIFF_EQUAL, mid_common));
+    diffs.add(Diff(DiffOperation.equal, mid_common));
     diffs.addAll(diffs_b);
     return diffs;
   }
@@ -170,16 +166,14 @@ List<Diff> _diffCompute(String text1, String text2, double timeout,
 /// * [deadline] is the time when the diff should be complete by.
 ///
 /// Returns a List of Diff objects.
-List<Diff> _diffLineMode(
-    String text1, String text2, double timeout, DateTime? deadline) {
+List<Diff> _diffLineMode(String text1, String text2, double timeout, DateTime? deadline) {
   // Scan the text on a line-by-line basis first.
   final a = linesToChars(text1, text2);
   text1 = a['chars1'] as String;
   text2 = a['chars2'] as String;
   final linearray = a['lineArray'] as List<String>? ?? [];
 
-  final diffs = diff(text1, text2,
-      timeout: timeout, checklines: false, deadline: deadline);
+  final diffs = diff(text1, text2, timeout: timeout, checklines: false, deadline: deadline);
 
   // Convert the diff back to original text.
   charsToLines(diffs, linearray);
@@ -188,7 +182,7 @@ List<Diff> _diffLineMode(
 
   // Rediff any replacement blocks, this time character-by-character.
   // Add a dummy entry at the end.
-  diffs.add(Diff(DIFF_EQUAL, ''));
+  diffs.add(Diff(DiffOperation.equal, ''));
   var pointer = 0;
   var count_delete = 0;
   var count_insert = 0;
@@ -196,15 +190,15 @@ List<Diff> _diffLineMode(
   final text_insert = StringBuffer();
   while (pointer < diffs.length) {
     switch (diffs[pointer].operation) {
-      case DIFF_INSERT:
+      case DiffOperation.insert:
         count_insert++;
         text_insert.write(diffs[pointer].text);
         break;
-      case DIFF_DELETE:
+      case DiffOperation.delete:
         count_delete++;
         text_delete.write(diffs[pointer].text);
         break;
-      case DIFF_EQUAL:
+      case DiffOperation.equal:
         // Upon reaching an equality, check for prior redundancies.
         if (count_delete >= 1 && count_insert >= 1) {
           // Delete the offending records and add the merged ones.
@@ -242,8 +236,7 @@ List<Diff> _diffLineMode(
 /// * [deadline] is the time at which to bail if not yet complete.
 ///
 /// Returns a List of Diff objects.
-List<Diff> diffBisect(
-    String text1, String text2, double timeout, DateTime? deadline) {
+List<Diff> diffBisect(String text1, String text2, double timeout, DateTime? deadline) {
   // Cache the text lengths to prevent multiple calls.
   final text1_length = text1.length;
   final text2_length = text2.length;
@@ -318,9 +311,7 @@ List<Diff> diffBisect(
         x2 = v2[k2_offset - 1] + 1;
       }
       var y2 = x2 - k2;
-      while (x2 < text1_length &&
-          y2 < text2_length &&
-          text1[text1_length - x2 - 1] == text2[text2_length - y2 - 1]) {
+      while (x2 < text1_length && y2 < text2_length && text1[text1_length - x2 - 1] == text2[text2_length - y2 - 1]) {
         x2++;
         y2++;
       }
@@ -348,7 +339,7 @@ List<Diff> diffBisect(
   }
   // Diff took too long and hit the deadline or
   // number of diffs equals number of characters, no commonality at all.
-  return [Diff(DIFF_DELETE, text1), Diff(DIFF_INSERT, text2)];
+  return [Diff(DiffOperation.delete, text1), Diff(DiffOperation.insert, text2)];
 }
 
 /// Given the location of the 'middle snake', split the diff in two parts
@@ -363,18 +354,15 @@ List<Diff> diffBisect(
 /// * [deadline] is the time at which to bail if not yet complete.
 ///
 /// Returns a List of Diff objects.
-List<Diff> _diffBisectSplit(String text1, String text2, int x, int y,
-    double timeout, DateTime? deadline) {
+List<Diff> _diffBisectSplit(String text1, String text2, int x, int y, double timeout, DateTime? deadline) {
   final text1a = text1.substring(0, x);
   final text2a = text2.substring(0, y);
   final text1b = text1.substring(x);
   final text2b = text2.substring(y);
 
   // Compute both diffs serially.
-  final diffs = diff(text1a, text2a,
-      timeout: timeout, checklines: false, deadline: deadline);
-  final diffsb = diff(text1b, text2b,
-      timeout: timeout, checklines: false, deadline: deadline);
+  final diffs = diff(text1a, text2a, timeout: timeout, checklines: false, deadline: deadline);
+  final diffsb = diff(text1b, text2b, timeout: timeout, checklines: false, deadline: deadline);
 
   diffs.addAll(diffsb);
   return diffs;

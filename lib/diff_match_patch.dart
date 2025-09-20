@@ -17,19 +17,10 @@
 library diff_match_patch;
 
 export 'package:diff_match_patch/src/diff.dart'
-    show
-        Diff,
-        diff,
-        cleanupSemantic,
-        cleanupEfficiency,
-        levenshtein,
-        DIFF_DELETE,
-        DIFF_INSERT,
-        DIFF_EQUAL;
+    show Diff, diff, cleanupSemantic, cleanupEfficiency, levenshtein, DiffOperation;
 
 export 'package:diff_match_patch/src/match.dart' show match;
 
-export 'package:diff_match_patch/src/patch.dart'
-    show Patch, patchMake, patchToText, patchFromText, patchApply;
+export 'package:diff_match_patch/src/patch.dart' show Patch, patchMake, patchToText, patchFromText, patchApply;
 
 export 'package:diff_match_patch/src/api.dart' show DiffMatchPatch;

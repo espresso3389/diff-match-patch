@@ -33,14 +33,23 @@ String toDelta(List<Diff> diffs) {
   final text = StringBuffer();
   for (var aDiff in diffs) {
     switch (aDiff.operation) {
-      case DIFF_INSERT:
-        text..write('+')..write(Uri.encodeFull(aDiff.text))..write('\t');
+      case DiffOperation.insert:
+        text
+          ..write('+')
+          ..write(Uri.encodeFull(aDiff.text))
+          ..write('\t');
         break;
-      case DIFF_DELETE:
-        text..write('-')..write(aDiff.text.length)..write('\t');
+      case DiffOperation.delete:
+        text
+          ..write('-')
+          ..write(aDiff.text.length)
+          ..write('\t');
         break;
-      case DIFF_EQUAL:
-        text..write('=')..write(aDiff.text.length)..write('\t');
+      case DiffOperation.equal:
+        text
+          ..write('=')
+          ..write(aDiff.text.length)
+          ..write('\t');
         break;
     }
   }
@@ -83,7 +92,7 @@ List<Diff> fromDelta(String text1, String delta) {
           // Malformed URI sequence.
           throw ArgumentError('Illegal escape in diff_fromDelta: $param');
         }
-        diffs.add(Diff(DIFF_INSERT, param));
+        diffs.add(Diff(DiffOperation.insert, param));
         break;
       case '-':
       // Fall through.
@@ -105,15 +114,14 @@ List<Diff> fromDelta(String text1, String delta) {
               ' larger than source text length (${text1.length}).');
         }
         if (token[0] == '=') {
-          diffs.add(Diff(DIFF_EQUAL, text));
+          diffs.add(Diff(DiffOperation.equal, text));
         } else {
-          diffs.add(Diff(DIFF_DELETE, text));
+          diffs.add(Diff(DiffOperation.delete, text));
         }
         break;
       default:
         // Anything else is an error.
-        throw ArgumentError(
-            'Invalid diff operation in diff_fromDelta: ${token[0]}');
+        throw ArgumentError('Invalid diff operation in diff_fromDelta: ${token[0]}');
     }
   }
   if (pointer != text1.length) {

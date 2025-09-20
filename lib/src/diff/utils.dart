@@ -26,8 +26,7 @@ part of diff;
 /// * [lineHash] is a Map of strings to indices.
 ///
 /// Returns an encoded string.
-String _linesToCharsMunge(
-    String text, List<String> lineArray, Map<String, int> lineHash) {
+String _linesToCharsMunge(String text, List<String> lineArray, Map<String, int> lineHash) {
   var lineStart = 0;
   var lineEnd = -1;
   String line;
@@ -75,11 +74,7 @@ Map<String, dynamic> linesToChars(String text1, String text2) {
 
   var chars1 = _linesToCharsMunge(text1, lineArray, lineHash);
   var chars2 = _linesToCharsMunge(text2, lineArray, lineHash);
-  return <String, dynamic>{
-    'chars1': chars1,
-    'chars2': chars2,
-    'lineArray': lineArray
-  };
+  return <String, dynamic>{'chars1': chars1, 'chars2': chars2, 'lineArray': lineArray};
 }
 
 /// Rehydrate the text in a diff from a string of line hashes to real lines of
@@ -177,8 +172,7 @@ int commonOverlap(String text1, String text2) {
       return best;
     }
     length += found;
-    if (found == 0 ||
-        text1.substring(text_length - length) == text2.substring(0, length)) {
+    if (found == 0 || text1.substring(text_length - length) == text2.substring(0, length)) {
       best = length;
       length++;
     }
@@ -197,13 +191,13 @@ int levenshtein(List<Diff> diffs) {
   var deletions = 0;
   for (var aDiff in diffs) {
     switch (aDiff.operation) {
-      case DIFF_INSERT:
+      case DiffOperation.insert:
         insertions += aDiff.text.length;
         break;
-      case DIFF_DELETE:
+      case DiffOperation.delete:
         deletions += aDiff.text.length;
         break;
-      case DIFF_EQUAL:
+      case DiffOperation.equal:
         // A deletion and an insertion is one substitution.
         levenshtein += max<int>(insertions, deletions);
         insertions = 0;
@@ -231,11 +225,11 @@ int diffXIndex(List<Diff> diffs, int loc) {
   var last_chars2 = 0;
   Diff? lastDiff;
   for (var aDiff in diffs) {
-    if (aDiff.operation != DIFF_INSERT) {
+    if (aDiff.operation != DiffOperation.insert) {
       // Equality or deletion.
       chars1 += aDiff.text.length;
     }
-    if (aDiff.operation != DIFF_DELETE) {
+    if (aDiff.operation != DiffOperation.delete) {
       // Equality or insertion.
       chars2 += aDiff.text.length;
     }
@@ -247,7 +241,7 @@ int diffXIndex(List<Diff> diffs, int loc) {
     last_chars1 = chars1;
     last_chars2 = chars2;
   }
-  if (lastDiff != null && lastDiff.operation == DIFF_DELETE) {
+  if (lastDiff != null && lastDiff.operation == DiffOperation.delete) {
     // The location was deleted.
     return last_chars2;
   }
@@ -263,7 +257,7 @@ int diffXIndex(List<Diff> diffs, int loc) {
 String diffText1(List<Diff> diffs) {
   final text = StringBuffer();
   for (var aDiff in diffs) {
-    if (aDiff.operation != DIFF_INSERT) {
+    if (aDiff.operation != DiffOperation.insert) {
       text.write(aDiff.text);
     }
   }
@@ -278,7 +272,7 @@ String diffText1(List<Diff> diffs) {
 String diffText2(List<Diff> diffs) {
   final text = StringBuffer();
   for (var aDiff in diffs) {
-    if (aDiff.operation != DIFF_DELETE) {
+    if (aDiff.operation != DiffOperation.delete) {
       text.write(aDiff.text);
     }
   }

@@ -41,11 +41,9 @@ List<String>? diffHalfMatch(String text1, String text2, double timeout) {
   }
 
   // First check if the second quarter is the seed for a half-match.
-  final hm1 = _diffHalfMatchI(
-      longtext, shorttext, ((longtext.length + 3) / 4).ceil().toInt());
+  final hm1 = _diffHalfMatchI(longtext, shorttext, ((longtext.length + 3) / 4).ceil().toInt());
   // Check again based on the third quarter.
-  final hm2 = _diffHalfMatchI(
-      longtext, shorttext, ((longtext.length + 1) / 2).ceil().toInt());
+  final hm2 = _diffHalfMatchI(longtext, shorttext, ((longtext.length + 1) / 2).ceil().toInt());
   List<String>? hm;
   if (hm1 == null && hm2 == null) {
     return null;
@@ -85,10 +83,8 @@ List<String>? _diffHalfMatchI(String longtext, String shorttext, int i) {
   var best_longtext_a = '', best_longtext_b = '';
   var best_shorttext_a = '', best_shorttext_b = '';
   while ((j = shorttext.indexOf(seed, j + 1)) != -1) {
-    var prefixLength =
-        commonPrefix(longtext.substring(i), shorttext.substring(j));
-    var suffixLength =
-        commonSuffix(longtext.substring(0, i), shorttext.substring(0, j));
+    var prefixLength = commonPrefix(longtext.substring(i), shorttext.substring(j));
+    var suffixLength = commonSuffix(longtext.substring(0, i), shorttext.substring(0, j));
     if (best_common.length < suffixLength + prefixLength) {
       best_common = '${shorttext.substring(j - suffixLength, j)}'
           '${shorttext.substring(j, j + prefixLength)}';
@@ -99,13 +95,7 @@ List<String>? _diffHalfMatchI(String longtext, String shorttext, int i) {
     }
   }
   if (best_common.length * 2 >= longtext.length) {
-    return [
-      best_longtext_a,
-      best_longtext_b,
-      best_shorttext_a,
-      best_shorttext_b,
-      best_common
-    ];
+    return [best_longtext_a, best_longtext_b, best_shorttext_a, best_shorttext_b, best_common];
   } else {
     return null;
   }

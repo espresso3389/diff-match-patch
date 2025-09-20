@@ -87,18 +87,13 @@ main() {
         expect(matchBitap('abcdexyzabcde', 'abccde', 5, 0.5, 100), equals(8));
       });
       test('Distance test #1', () {
-        expect(matchBitap('abcdefghijklmnopqrstuvwxyz', 'abcdefg', 24, 0.5, 10),
-            equals(-1));
+        expect(matchBitap('abcdefghijklmnopqrstuvwxyz', 'abcdefg', 24, 0.5, 10), equals(-1));
       });
       test('Distance test #2', () {
-        expect(
-            matchBitap('abcdefghijklmnopqrstuvwxyz', 'abcdxxefg', 1, 0.5, 10),
-            equals(0));
+        expect(matchBitap('abcdefghijklmnopqrstuvwxyz', 'abcdxxefg', 1, 0.5, 10), equals(0));
       });
       test('Distance test #3', () {
-        expect(
-            matchBitap('abcdefghijklmnopqrstuvwxyz', 'abcdefg', 24, 0.5, 1000),
-            equals(0));
+        expect(matchBitap('abcdefghijklmnopqrstuvwxyz', 'abcdefg', 24, 0.5, 1000), equals(0));
       });
     });
 
@@ -122,11 +117,7 @@ main() {
         expect(match('abcdef', 'abcdefy', 0), equals(0));
       });
       test('Complex match', () {
-        expect(
-            match('I am the very model of a modern major general.',
-                ' that berry ', 5,
-                threshold: 0.7),
-            equals(4));
+        expect(match('I am the very model of a modern major general.', ' that berry ', 5, threshold: 0.7), equals(4));
       });
     });
   });

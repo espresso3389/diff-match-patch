@@ -61,10 +61,8 @@ class DiffMatchPatch {
   ///   internally for recursive calls.  Users should set [diffTimeout] instead.
   ///
   /// Returns a List of [Diff] objects.
-  List<d.Diff> diff(String text1, String text2,
-      [bool checklines = true, DateTime? deadline]) {
-    return d.diff(text1, text2,
-        checklines: checklines, deadline: deadline, timeout: diffTimeout);
+  List<d.Diff> diff(String text1, String text2, [bool checklines = true, DateTime? deadline]) {
+    return d.diff(text1, text2, checklines: checklines, deadline: deadline, timeout: diffTimeout);
   }
 
   /// Reduce the number of edits by eliminating semantically trivial equalities.
@@ -100,8 +98,7 @@ class DiffMatchPatch {
   ///
   /// Returns the best match index or -1.
   int match(String text, String pattern, int loc) {
-    return m.match(text, pattern, loc,
-        threshold: matchThreshold, distance: matchDistance);
+    return m.match(text, pattern, loc, threshold: matchThreshold, distance: matchDistance);
   }
 
   /// Compute a list of patches to turn text1 into text2.
@@ -140,8 +137,6 @@ class DiffMatchPatch {
   ///      bool values.
   List patch_apply(List<p.Patch> patches, String text) {
     return p.patchApply(patches, text,
-        diffTimeout: diffTimeout,
-        deleteThreshold: patchDeleteThreshold,
-        margin: patchMargin);
+        diffTimeout: diffTimeout, deleteThreshold: patchDeleteThreshold, margin: patchMargin);
   }
 }

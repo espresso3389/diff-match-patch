@@ -20,27 +20,24 @@ part of diff;
 
 /// The data structure representing a diff is a List of Diff objects:
 ///
-///     [Diff(DIFF_DELETE, 'Hello'),
-///      Diff(DIFF_INSERT, 'Goodbye'),
-///      Diff(DIFF_EQUAL, ' world.')]
+///     [Diff(DiffOperation.delete, 'Hello'),
+///      Diff(DiffOperation.insert, 'Goodbye'),
+///      Diff(DiffOperation.equal, ' world.')]
 ///
 /// which means: delete 'Hello', add 'Goodbye' and keep ' world.'
 
-const DIFF_DELETE = -1;
-const DIFF_INSERT = 1;
-const DIFF_EQUAL = 0;
+enum DiffOperation { delete, insert, equal }
 
 /// Class representing one diff operation.
 class Diff {
-  /// One of: [DIFF_INSERT], [DIFF_DELETE] or [DIFF_EQUAL].
-  int operation;
+  DiffOperation operation;
 
   /// The text associated with this diff operation.
   String text;
 
   /// Constructor.  Initializes the diff with the provided values.
   ///
-  /// * [operation] is one of [DIFF_INSERT], [DIFF_DELETE] or [DIFF_EQUAL].
+  /// * [operation] is one of [DiffOperation] values.
   /// * [text] is the text being applied.
   Diff(this.operation, this.text);
 
@@ -61,10 +58,7 @@ class Diff {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Diff &&
-          runtimeType == other.runtimeType &&
-          operation == other.operation &&
-          text == other.text;
+      other is Diff && runtimeType == other.runtimeType && operation == other.operation && text == other.text;
 
   @override
   int get hashCode => operation.hashCode ^ text.hashCode;

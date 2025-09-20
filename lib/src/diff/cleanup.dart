@@ -42,7 +42,7 @@ void cleanupSemantic(List<Diff> diffs) {
   var length_insertions2 = 0;
   var length_deletions2 = 0;
   while (pointer < diffs.length) {
-    if (diffs[pointer].operation == DIFF_EQUAL) {
+    if (diffs[pointer].operation == DiffOperation.equal) {
       // Equality found.
       equalities.add(pointer);
       length_insertions1 = length_insertions2;
@@ -52,7 +52,7 @@ void cleanupSemantic(List<Diff> diffs) {
       lastequality = diffs[pointer].text;
     } else {
       // An insertion or deletion.
-      if (diffs[pointer].operation == DIFF_INSERT) {
+      if (diffs[pointer].operation == DiffOperation.insert) {
         length_insertions2 += diffs[pointer].text.length;
       } else {
         length_deletions2 += diffs[pointer].text.length;
@@ -63,9 +63,9 @@ void cleanupSemantic(List<Diff> diffs) {
           (lastequality.length <= max(length_insertions1, length_deletions1)) &&
           (lastequality.length <= max(length_insertions2, length_deletions2))) {
         // Duplicate record.
-        diffs.insert(equalities.last, Diff(DIFF_DELETE, lastequality));
+        diffs.insert(equalities.last, Diff(DiffOperation.delete, lastequality));
         // Change second copy to insert.
-        diffs[equalities.last + 1].operation = DIFF_INSERT;
+        diffs[equalities.last + 1].operation = DiffOperation.insert;
         // Throw away the equality we just deleted.
         equalities.removeLast();
         // Throw away the previous equality (it needs to be reevaluated).
@@ -98,35 +98,27 @@ void cleanupSemantic(List<Diff> diffs) {
   // Only extract an overlap if it is as big as the edit ahead or behind it.
   pointer = 1;
   while (pointer < diffs.length) {
-    if (diffs[pointer - 1].operation == DIFF_DELETE &&
-        diffs[pointer].operation == DIFF_INSERT) {
+    if (diffs[pointer - 1].operation == DiffOperation.delete && diffs[pointer].operation == DiffOperation.insert) {
       var deletion = diffs[pointer - 1].text;
       var insertion = diffs[pointer].text;
       var overlap_length1 = commonOverlap(deletion, insertion);
       var overlap_length2 = commonOverlap(insertion, deletion);
       if (overlap_length1 >= overlap_length2) {
-        if (overlap_length1 >= deletion.length / 2 ||
-            overlap_length1 >= insertion.length / 2) {
+        if (overlap_length1 >= deletion.length / 2 || overlap_length1 >= insertion.length / 2) {
           // Overlap found.
           // Insert an equality and trim the surrounding edits.
-          diffs.insert(pointer,
-              Diff(DIFF_EQUAL, insertion.substring(0, overlap_length1)));
-          diffs[pointer - 1].text =
-              deletion.substring(0, deletion.length - overlap_length1);
+          diffs.insert(pointer, Diff(DiffOperation.equal, insertion.substring(0, overlap_length1)));
+          diffs[pointer - 1].text = deletion.substring(0, deletion.length - overlap_length1);
           diffs[pointer + 1].text = insertion.substring(overlap_length1);
           pointer++;
         }
       } else {
-        if (overlap_length2 >= deletion.length / 2 ||
-            overlap_length2 >= insertion.length / 2) {
+        if (overlap_length2 >= deletion.length / 2 || overlap_length2 >= insertion.length / 2) {
           // Reverse overlap found.
           // Insert an equality and swap and trim the surrounding edits.
-          diffs.insert(pointer,
-              Diff(DIFF_EQUAL, deletion.substring(0, overlap_length2)));
-          diffs[pointer - 1] = Diff(DIFF_INSERT,
-              insertion.substring(0, insertion.length - overlap_length2));
-          diffs[pointer + 1] =
-              Diff(DIFF_DELETE, deletion.substring(overlap_length2));
+          diffs.insert(pointer, Diff(DiffOperation.equal, deletion.substring(0, overlap_length2)));
+          diffs[pointer - 1] = Diff(DiffOperation.insert, insertion.substring(0, insertion.length - overlap_length2));
+          diffs[pointer + 1] = Diff(DiffOperation.delete, deletion.substring(overlap_length2));
           pointer++;
         }
       }
@@ -195,8 +187,7 @@ void cleanupSemanticLossless(List<Diff> diffs) {
   var pointer = 1;
   // Intentionally ignore the first and last element (don't need checking).
   while (pointer < diffs.length - 1) {
-    if (diffs[pointer - 1].operation == DIFF_EQUAL &&
-        diffs[pointer + 1].operation == DIFF_EQUAL) {
+    if (diffs[pointer - 1].operation == DiffOperation.equal && diffs[pointer + 1].operation == DiffOperation.equal) {
       // This is a single edit surrounded by equalities.
       var equality1 = diffs[pointer - 1].text;
       var edit = diffs[pointer].text;
@@ -215,15 +206,12 @@ void cleanupSemanticLossless(List<Diff> diffs) {
       var bestEquality1 = equality1;
       var bestEdit = edit;
       var bestEquality2 = equality2;
-      var bestScore = _cleanupSemanticScore(equality1, edit) +
-          _cleanupSemanticScore(edit, equality2);
-      while (
-          edit.isNotEmpty && equality2.isNotEmpty && edit[0] == equality2[0]) {
+      var bestScore = _cleanupSemanticScore(equality1, edit) + _cleanupSemanticScore(edit, equality2);
+      while (edit.isNotEmpty && equality2.isNotEmpty && edit[0] == equality2[0]) {
         equality1 = '$equality1${edit[0]}';
         edit = '${edit.substring(1)}${equality2[0]}';
         equality2 = equality2.substring(1);
-        var score = _cleanupSemanticScore(equality1, edit) +
-            _cleanupSemanticScore(edit, equality2);
+        var score = _cleanupSemanticScore(equality1, edit) + _cleanupSemanticScore(edit, equality2);
         // The >= encourages trailing rather than leading whitespace on edits.
         if (score >= bestScore) {
           bestScore = score;
@@ -273,7 +261,7 @@ void cleanupEfficiency(List<Diff> diffs, int diffEditCost) {
   // Is there a deletion operation after the last equality.
   var post_del = false;
   while (pointer < diffs.length) {
-    if (diffs[pointer].operation == DIFF_EQUAL) {
+    if (diffs[pointer].operation == DiffOperation.equal) {
       // Equality found.
       if (diffs[pointer].text.length < diffEditCost && (post_ins || post_del)) {
         // Candidate found.
@@ -289,7 +277,7 @@ void cleanupEfficiency(List<Diff> diffs, int diffEditCost) {
       post_ins = post_del = false;
     } else {
       // An insertion or deletion.
-      if (diffs[pointer].operation == DIFF_DELETE) {
+      if (diffs[pointer].operation == DiffOperation.delete) {
         post_del = true;
       } else {
         post_ins = true;
@@ -305,15 +293,11 @@ void cleanupEfficiency(List<Diff> diffs, int diffEditCost) {
       if (lastequality != null &&
           ((pre_ins && pre_del && post_ins && post_del) ||
               ((lastequality.length < diffEditCost / 2) &&
-                  ((pre_ins ? 1 : 0) +
-                          (pre_del ? 1 : 0) +
-                          (post_ins ? 1 : 0) +
-                          (post_del ? 1 : 0)) ==
-                      3))) {
+                  ((pre_ins ? 1 : 0) + (pre_del ? 1 : 0) + (post_ins ? 1 : 0) + (post_del ? 1 : 0)) == 3))) {
         // Duplicate record.
-        diffs.insert(equalities.last, Diff(DIFF_DELETE, lastequality));
+        diffs.insert(equalities.last, Diff(DiffOperation.delete, lastequality));
         // Change second copy to insert.
-        diffs[equalities.last + 1].operation = DIFF_INSERT;
+        diffs[equalities.last + 1].operation = DiffOperation.insert;
         equalities.removeLast(); // Throw away the equality we just deleted.
         lastequality = null;
         if (pre_ins && pre_del) {
@@ -343,7 +327,7 @@ void cleanupEfficiency(List<Diff> diffs, int diffEditCost) {
 ///
 /// [diffs] is a List of Diff objects.
 void cleanupMerge(List<Diff> diffs) {
-  diffs.add(Diff(DIFF_EQUAL, '')); // Add a dummy entry at the end.
+  diffs.add(Diff(DiffOperation.equal, '')); // Add a dummy entry at the end.
   var pointer = 0;
   var count_delete = 0;
   var count_insert = 0;
@@ -352,17 +336,17 @@ void cleanupMerge(List<Diff> diffs) {
   int commonlength;
   while (pointer < diffs.length) {
     switch (diffs[pointer].operation) {
-      case DIFF_INSERT:
+      case DiffOperation.insert:
         count_insert++;
         text_insert = '$text_insert${diffs[pointer].text}';
         pointer++;
         break;
-      case DIFF_DELETE:
+      case DiffOperation.delete:
         count_delete++;
         text_delete = '$text_delete${diffs[pointer].text}';
         pointer++;
         break;
-      case DIFF_EQUAL:
+      case DiffOperation.equal:
         // Upon reaching an equality, check for prior redundancies.
         if (count_delete + count_insert > 1) {
           if (count_delete != 0 && count_insert != 0) {
@@ -370,14 +354,12 @@ void cleanupMerge(List<Diff> diffs) {
             commonlength = commonPrefix(text_insert, text_delete);
             if (commonlength != 0) {
               if ((pointer - count_delete - count_insert) > 0 &&
-                  diffs[pointer - count_delete - count_insert - 1].operation ==
-                      DIFF_EQUAL) {
+                  diffs[pointer - count_delete - count_insert - 1].operation == DiffOperation.equal) {
                 final i = pointer - count_delete - count_insert - 1;
                 diffs[i].text = '${diffs[i].text}'
                     '${text_insert.substring(0, commonlength)}';
               } else {
-                diffs.insert(0,
-                    Diff(DIFF_EQUAL, text_insert.substring(0, commonlength)));
+                diffs.insert(0, Diff(DiffOperation.equal, text_insert.substring(0, commonlength)));
                 pointer++;
               }
               text_insert = text_insert.substring(commonlength);
@@ -386,40 +368,28 @@ void cleanupMerge(List<Diff> diffs) {
             // Factor out any common suffixies.
             commonlength = commonSuffix(text_insert, text_delete);
             if (commonlength != 0) {
-              diffs[pointer].text =
-                  '${text_insert.substring(text_insert.length - commonlength)}${diffs[pointer].text}';
-              text_insert =
-                  text_insert.substring(0, text_insert.length - commonlength);
-              text_delete =
-                  text_delete.substring(0, text_delete.length - commonlength);
+              diffs[pointer].text = '${text_insert.substring(text_insert.length - commonlength)}${diffs[pointer].text}';
+              text_insert = text_insert.substring(0, text_insert.length - commonlength);
+              text_delete = text_delete.substring(0, text_delete.length - commonlength);
             }
           }
           // Delete the offending records and add the merged ones.
           if (count_delete == 0) {
             diffs.removeRange(pointer - count_insert, pointer);
-            diffs.insert(
-                pointer - count_insert, Diff(DIFF_INSERT, text_insert));
+            diffs.insert(pointer - count_insert, Diff(DiffOperation.insert, text_insert));
           } else if (count_insert == 0) {
             diffs.removeRange(pointer - count_delete, pointer);
-            diffs.insert(
-                pointer - count_delete, Diff(DIFF_DELETE, text_delete));
+            diffs.insert(pointer - count_delete, Diff(DiffOperation.delete, text_delete));
           } else {
             diffs.removeRange(pointer - count_delete - count_insert, pointer);
-            diffs.insert(pointer - count_delete - count_insert,
-                Diff(DIFF_INSERT, text_insert));
-            diffs.insert(pointer - count_delete - count_insert,
-                Diff(DIFF_DELETE, text_delete));
+            diffs.insert(pointer - count_delete - count_insert, Diff(DiffOperation.insert, text_insert));
+            diffs.insert(pointer - count_delete - count_insert, Diff(DiffOperation.delete, text_delete));
           }
-          pointer = pointer -
-              count_delete -
-              count_insert +
-              (count_delete == 0 ? 0 : 1) +
-              (count_insert == 0 ? 0 : 1) +
-              1;
-        } else if (pointer != 0 && diffs[pointer - 1].operation == DIFF_EQUAL) {
+          pointer =
+              pointer - count_delete - count_insert + (count_delete == 0 ? 0 : 1) + (count_insert == 0 ? 0 : 1) + 1;
+        } else if (pointer != 0 && diffs[pointer - 1].operation == DiffOperation.equal) {
           // Merge this equality with the previous one.
-          diffs[pointer - 1].text =
-              '${diffs[pointer - 1].text}${diffs[pointer].text}';
+          diffs[pointer - 1].text = '${diffs[pointer - 1].text}${diffs[pointer].text}';
           diffs.removeRange(pointer, pointer + 1);
         } else {
           pointer++;
@@ -442,23 +412,19 @@ void cleanupMerge(List<Diff> diffs) {
   pointer = 1;
   // Intentionally ignore the first and last element (don't need checking).
   while (pointer < diffs.length - 1) {
-    if (diffs[pointer - 1].operation == DIFF_EQUAL &&
-        diffs[pointer + 1].operation == DIFF_EQUAL) {
+    if (diffs[pointer - 1].operation == DiffOperation.equal && diffs[pointer + 1].operation == DiffOperation.equal) {
       // This is a single edit surrounded by equalities.
       if (diffs[pointer].text.endsWith(diffs[pointer - 1].text)) {
         // Shift the edit over the previous equality.
         diffs[pointer].text = '${diffs[pointer - 1].text}'
             '${diffs[pointer].text.substring(0, diffs[pointer].text.length - diffs[pointer - 1].text.length)}';
-        diffs[pointer + 1].text =
-            '${diffs[pointer - 1].text}${diffs[pointer + 1].text}';
+        diffs[pointer + 1].text = '${diffs[pointer - 1].text}${diffs[pointer + 1].text}';
         diffs.removeRange(pointer - 1, pointer);
         changes = true;
       } else if (diffs[pointer].text.startsWith(diffs[pointer + 1].text)) {
         // Shift the edit over the next equality.
-        diffs[pointer - 1].text =
-            '${diffs[pointer - 1].text}${diffs[pointer + 1].text}';
-        diffs[pointer].text =
-            '${diffs[pointer].text.substring(diffs[pointer + 1].text.length)}'
+        diffs[pointer - 1].text = '${diffs[pointer - 1].text}${diffs[pointer + 1].text}';
+        diffs[pointer].text = '${diffs[pointer].text.substring(diffs[pointer + 1].text.length)}'
             '${diffs[pointer + 1].text}';
         diffs.removeRange(pointer + 1, pointer + 2);
         changes = true;
