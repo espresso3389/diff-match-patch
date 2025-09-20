@@ -503,7 +503,7 @@ List patchApply(
 
 /// Add some padding on text start and end so that edges can match something.
 ///
-/// Intended to be called only from within [patch_apply].
+/// Intended to be called only from within [patchApply].
 ///
 /// [patches] is a List of Patch objects.
 ///
@@ -566,7 +566,7 @@ String patchAddPadding(List<Patch> patches, {int margin = 4}) {
 /// Look through the [patches] and break up any which are longer than the
 /// maximum limit of the match algorithm.
 ///
-/// Intended to be called only from within [patch_apply].
+/// Intended to be called only from within [patchApply].
 ///
 /// [patches] is a List of Patch objects.
 void patchSplitMax(List<Patch> patches, {int margin = 4}) {
