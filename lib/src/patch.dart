@@ -18,7 +18,6 @@ library;
 
 import 'dart:math';
 
-import 'api.dart' show WillContinue;
 import 'common.dart';
 import 'diff.dart';
 import 'match.dart';
@@ -230,7 +229,6 @@ List<Patch> patchMake(
   Object? a, {
   Object? b,
   Object? c,
-  WillContinue? willContinue,
   int diffEditCost = 4,
   double deleteThreshold = 0.5,
   int margin = 4,
@@ -241,7 +239,7 @@ List<Patch> patchMake(
     // Method 1: text1, text2
     // Compute diffs from text1 and text2.
     text1 = a;
-    diffs = diff(text1, b, checkLines: true, willContinue: willContinue);
+    diffs = diff(text1, b, checkLines: true);
     if (diffs.length > 2) {
       cleanupSemantic(diffs, from: 0);
       cleanupEfficiency(diffs, diffEditCost, from: 0);
@@ -378,7 +376,6 @@ List patchApply(
   List<Patch> patches,
   String text, {
   double deleteThreshold = 0.5,
-  WillContinue? willContinue,
   double matchThreshold = 0.5,
   int matchDistance = 1000,
   int margin = 4,
@@ -459,7 +456,7 @@ List patchApply(
       } else {
         // Imperfect match.  Run a diff to get a framework of equivalent
         // indices.
-        final diffs = diff(text1, text2, checkLines: false, willContinue: willContinue);
+        final diffs = diff(text1, text2, checkLines: false);
         if ((text1.length > bitsPerInt) && (levenshtein(diffs) / text1.length > deleteThreshold)) {
           // The end points match, but the content is unacceptably bad.
           results[x] = false;

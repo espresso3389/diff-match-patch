@@ -26,24 +26,17 @@ part of '../diff.dart';
 /// * [checkLines] is an optional speedup flag.  If false, then don't
 ///   run a line-level diff first to identify the changed areas.
 ///   Defaults to true, which does a faster, slightly less optimal diff.
-/// * [willContinue] is an optional callback that is invoked periodically.
 ///
 /// Returns a List of Diff objects.
-List<Diff> diff(String text1, String text2, {bool checkLines = true, WillContinue? willContinue}) {
+List<Diff> diff(String text1, String text2, {bool checkLines = true}) {
   final diffs = <Diff>[];
-  _diff(
-    diffs,
-    text1,
-    text2,
-    checkLines: checkLines,
-    willContinue: willContinue != null ? () => willContinue.call(diffs) : null,
-  );
+  _diff(diffs, text1, text2, checkLines: checkLines);
   return diffs;
 }
 
 typedef WillContinue0 = bool Function();
 
-void _diff(List<Diff> diffs, String text1, String text2, {bool checkLines = true, WillContinue0? willContinue}) {
+void _diff(List<Diff> diffs, String text1, String text2, {bool checkLines = true}) {
   final from = diffs.length;
 
   // Check for equality (speedup).
@@ -67,7 +60,7 @@ void _diff(List<Diff> diffs, String text1, String text2, {bool checkLines = true
   text2 = text2.substring(0, text2.length - commonLength);
 
   // Compute the diff on the middle block.
-  _diffCompute(diffs, text1, text2, checkLines, willContinue);
+  _diffCompute(diffs, text1, text2, checkLines);
 
   // Restore the prefix and suffix.
   if (commonPrefix.isNotEmpty) {
@@ -88,10 +81,9 @@ void _diff(List<Diff> diffs, String text1, String text2, {bool checkLines = true
 /// * [checkLines] is a speedup flag.  If false, then don't run a
 ///   line-level diff first to identify the changed areas.
 ///   If true, then run a faster slightly less optimal diff.
-/// * [willContinue] is an optional callback that is invoked periodically.
 ///
 /// Returns a List of Diff objects.
-void _diffCompute(List<Diff> diffs, String text1, String text2, bool checkLines, WillContinue0? willContinue) {
+void _diffCompute(List<Diff> diffs, String text1, String text2, bool checkLines) {
   if (text1.isEmpty) {
     // Just add some text (speedup).
     diffs.add(Diff(DiffOperation.insert, text2));
@@ -134,18 +126,18 @@ void _diffCompute(List<Diff> diffs, String text1, String text2, bool checkLines,
     final text2B = hm[3];
     final midCommon = hm[4];
     // Send both pairs off for separate processing.
-    _diff(diffs, text1A, text2A, checkLines: checkLines, willContinue: willContinue);
+    _diff(diffs, text1A, text2A, checkLines: checkLines);
     diffs.add(Diff(DiffOperation.equal, midCommon));
-    _diff(diffs, text1B, text2B, checkLines: checkLines, willContinue: willContinue);
+    _diff(diffs, text1B, text2B, checkLines: checkLines);
     return;
   }
 
   if (checkLines && text1.length > 100 && text2.length > 100) {
-    _diffLineMode(diffs, text1, text2, willContinue);
+    _diffLineMode(diffs, text1, text2);
     return;
   }
 
-  diffBisect(diffs, text1, text2, willContinue);
+  diffBisect(diffs, text1, text2);
 }
 
 /// Do a quick line-level diff on both strings, then rediff the parts for
@@ -154,10 +146,9 @@ void _diffCompute(List<Diff> diffs, String text1, String text2, bool checkLines,
 ///
 /// * [text1] is the old string to be diffed.
 /// * [text2] is the new string to be diffed.
-/// * [willContinue] is an optional callback that is invoked periodically.
 ///
 /// Returns a List of Diff objects.
-void _diffLineMode(List<Diff> diffs, String text1, String text2, WillContinue0? willContinue) {
+void _diffLineMode(List<Diff> diffs, String text1, String text2) {
   final from = diffs.length;
   // Scan the text on a line-by-line basis first.
   final a = linesToChars(text1, text2);
@@ -165,7 +156,7 @@ void _diffLineMode(List<Diff> diffs, String text1, String text2, WillContinue0? 
   text2 = a['chars2'] as String;
   final lineArray = a['lineArray'] as List<String>? ?? [];
 
-  _diff(diffs, text1, text2, checkLines: false, willContinue: willContinue);
+  _diff(diffs, text1, text2, checkLines: false);
 
   // Convert the diff back to original text.
   charsToLines(diffs, lineArray, from: from);
@@ -197,10 +188,8 @@ void _diffLineMode(List<Diff> diffs, String text1, String text2, WillContinue0? 
           diffs.removeRange(pointer - countDelete - countInsert, pointer);
           pointer = pointer - countDelete - countInsert;
           final a = <Diff>[];
-          _diff(a, textDelete.toString(), textInsert.toString(), checkLines: false, willContinue: willContinue);
-          for (var j = a.length - 1; j >= 0; j--) {
-            diffs.insert(pointer, a[j]);
-          }
+          _diff(a, textDelete.toString(), textInsert.toString(), checkLines: false);
+          diffs.insertAll(pointer, a);
           pointer = pointer + a.length;
         }
         countInsert = 0;
@@ -224,7 +213,7 @@ void _diffLineMode(List<Diff> diffs, String text1, String text2, WillContinue0? 
 /// * [willContinue] is an optional callback that is invoked periodically.
 ///
 /// Returns a List of Diff objects.
-void diffBisect(List<Diff> diffs, String text1, String text2, WillContinue0? willContinue) {
+void diffBisect(List<Diff> diffs, String text1, String text2) {
   // Cache the text lengths to prevent multiple calls.
   final text1Length = text1.length;
   final text2Length = text2.length;
@@ -250,11 +239,6 @@ void diffBisect(List<Diff> diffs, String text1, String text2, WillContinue0? wil
   var k2start = 0;
   var k2end = 0;
   for (var d = 0; d < maxD; d++) {
-    // Bail out if willContinue returns false.
-    if (willContinue?.call() == false) {
-      break;
-    }
-
     // Walk the front path one step.
     for (var k1 = -d + k1start; k1 <= d - k1end; k1 += 2) {
       var k1Offset = vOffset + k1;
@@ -283,7 +267,7 @@ void diffBisect(List<Diff> diffs, String text1, String text2, WillContinue0? wil
           var x2 = text1Length - v2[k2Offset];
           if (x1 >= x2) {
             // Overlap detected.
-            _diffBisectSplit(diffs, text1, text2, x1, y1, willContinue);
+            _diffBisectSplit(diffs, text1, text2, x1, y1);
             return;
           }
         }
@@ -320,7 +304,7 @@ void diffBisect(List<Diff> diffs, String text1, String text2, WillContinue0? wil
           x2 = text1Length - x2;
           if (x1 >= x2) {
             // Overlap detected.
-            _diffBisectSplit(diffs, text1, text2, x1, y1, willContinue);
+            _diffBisectSplit(diffs, text1, text2, x1, y1);
             return;
           }
         }
@@ -340,16 +324,15 @@ void diffBisect(List<Diff> diffs, String text1, String text2, WillContinue0? wil
 /// * [text2] is the new string to be diffed.
 /// * [x] is the index of split point in text1.
 /// * [y] is the index of split point in text2.
-/// * [willContinue] is an optional callback that is invoked periodically.
 ///
 /// Returns a List of Diff objects.
-void _diffBisectSplit(List<Diff> diffs, String text1, String text2, int x, int y, WillContinue0? willContinue) {
+void _diffBisectSplit(List<Diff> diffs, String text1, String text2, int x, int y) {
   final text1a = text1.substring(0, x);
   final text2a = text2.substring(0, y);
   final text1b = text1.substring(x);
   final text2b = text2.substring(y);
 
   // Compute both diffs serially.
-  _diff(diffs, text1a, text2a, checkLines: false, willContinue: willContinue);
-  _diff(diffs, text1b, text2b, checkLines: false, willContinue: willContinue);
+  _diff(diffs, text1a, text2a, checkLines: false);
+  _diff(diffs, text1b, text2b, checkLines: false);
 }

@@ -20,9 +20,6 @@ import 'diff.dart' as d;
 import 'match.dart' as m;
 import 'patch.dart' as p;
 
-/// Function type for a callback that determines if the diff operation should continue.
-typedef WillContinue = bool Function(List<d.Diff> currentDiffs);
-
 /// Class containing the [diff], [match] and [patch] methods.
 /// Also contains the behaviour settings.
 class DiffMatchPatch {
@@ -57,11 +54,10 @@ class DiffMatchPatch {
   /// * [checkLines] is an optional speedup flag.  If false, then don't
   ///   run a line-level diff first to identify the changed areas.
   ///   Defaults to true, which does a faster, slightly less optimal diff.
-  /// * [willContinue] is an optional callback that is invoked periodically.
   ///
   /// Returns a List of [d.Diff] objects.
-  List<d.Diff> diff(String text1, String text2, [bool checkLines = true, WillContinue? willContinue]) {
-    return d.diff(text1, text2, checkLines: checkLines, willContinue: willContinue);
+  List<d.Diff> diff(String text1, String text2, [bool checkLines = true]) {
+    return d.diff(text1, text2, checkLines: checkLines);
   }
 
   /// Reduce the number of edits by eliminating semantically trivial equalities.
