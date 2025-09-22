@@ -520,7 +520,7 @@ main() {
         // If the order changes, tweak this test as required.
         var diffs = [ddel('c'), dins('m'), deq('a'), ddel('t'), dins('p')];
         var newDiffs = <Diff>[];
-        diffBisect(newDiffs, 'cat', 'map', () => true);
+        diffBisect(newDiffs, 'cat', 'map');
         expect(newDiffs, equals(diffs));
       });
     });

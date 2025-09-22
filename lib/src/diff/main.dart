@@ -34,8 +34,6 @@ List<Diff> diff(String text1, String text2, {bool checkLines = true}) {
   return diffs;
 }
 
-typedef WillContinue0 = bool Function();
-
 void _diff(List<Diff> diffs, String text1, String text2, {bool checkLines = true}) {
   final from = diffs.length;
 
