@@ -56,8 +56,8 @@ class DiffMatchPatch {
   ///   Defaults to true, which does a faster, slightly less optimal diff.
   ///
   /// Returns a List of [d.Diff] objects.
-  List<d.Diff> diff(String text1, String text2, [bool checkLines = true]) {
-    return d.diff(text1, text2, checkLines: checkLines);
+  List<d.Diff> diff(String text1, String text2, [bool checkLines = true, d.CreateDiffList? createDiffList]) {
+    return d.diff(text1, text2, checkLines: checkLines, createDiffList: createDiffList);
   }
 
   /// Reduce the number of edits by eliminating semantically trivial equalities.

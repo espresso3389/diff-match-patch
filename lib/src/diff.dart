@@ -19,8 +19,6 @@ library;
 import 'dart:collection';
 import 'dart:math';
 
-import 'api.dart' show WillContinue;
-
 part 'diff/cleanup.dart';
 part 'diff/delta.dart';
 part 'diff/diff.dart';

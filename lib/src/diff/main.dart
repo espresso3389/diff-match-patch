@@ -18,6 +18,8 @@
 
 part of '../diff.dart';
 
+typedef CreateDiffList = List<Diff> Function(List<Diff>? willAppendedTo);
+
 /// Find the differences between two texts.  Simplifies the problem by
 /// stripping any common prefix or suffix off the texts before diffing.
 ///
@@ -28,13 +30,13 @@ part of '../diff.dart';
 ///   Defaults to true, which does a faster, slightly less optimal diff.
 ///
 /// Returns a List of Diff objects.
-List<Diff> diff(String text1, String text2, {bool checkLines = true}) {
-  final diffs = <Diff>[];
-  _diff(diffs, text1, text2, checkLines: checkLines);
+List<Diff> diff(String text1, String text2, {bool checkLines = true, CreateDiffList? createDiffList}) {
+  final diffs = createDiffList?.call(null) ?? <Diff>[];
+  _diff(diffs, text1, text2, checkLines, createDiffList);
   return diffs;
 }
 
-void _diff(List<Diff> diffs, String text1, String text2, {bool checkLines = true}) {
+void _diff(List<Diff> diffs, String text1, String text2, bool checkLines, CreateDiffList? createDiffList) {
   final from = diffs.length;
 
   // Check for equality (speedup).
@@ -58,8 +60,7 @@ void _diff(List<Diff> diffs, String text1, String text2, {bool checkLines = true
   text2 = text2.substring(0, text2.length - commonLength);
 
   // Compute the diff on the middle block.
-  _diffCompute(diffs, text1, text2, checkLines);
-
+  _diffCompute(diffs, text1, text2, checkLines, createDiffList);
   // Restore the prefix and suffix.
   if (commonPrefix.isNotEmpty) {
     diffs.insert(0, Diff(DiffOperation.equal, commonPrefix));
@@ -81,7 +82,7 @@ void _diff(List<Diff> diffs, String text1, String text2, {bool checkLines = true
 ///   If true, then run a faster slightly less optimal diff.
 ///
 /// Returns a List of Diff objects.
-void _diffCompute(List<Diff> diffs, String text1, String text2, bool checkLines) {
+void _diffCompute(List<Diff> diffs, String text1, String text2, bool checkLines, CreateDiffList? createDiffList) {
   if (text1.isEmpty) {
     // Just add some text (speedup).
     diffs.add(Diff(DiffOperation.insert, text2));
@@ -124,14 +125,14 @@ void _diffCompute(List<Diff> diffs, String text1, String text2, bool checkLines)
     final text2B = hm[3];
     final midCommon = hm[4];
     // Send both pairs off for separate processing.
-    _diff(diffs, text1A, text2A, checkLines: checkLines);
+    _diff(diffs, text1A, text2A, checkLines, createDiffList);
     diffs.add(Diff(DiffOperation.equal, midCommon));
-    _diff(diffs, text1B, text2B, checkLines: checkLines);
+    _diff(diffs, text1B, text2B, checkLines, createDiffList);
     return;
   }
 
   if (checkLines && text1.length > 100 && text2.length > 100) {
-    _diffLineMode(diffs, text1, text2);
+    _diffLineMode(diffs, text1, text2, createDiffList);
     return;
   }
 
@@ -146,7 +147,7 @@ void _diffCompute(List<Diff> diffs, String text1, String text2, bool checkLines)
 /// * [text2] is the new string to be diffed.
 ///
 /// Returns a List of Diff objects.
-void _diffLineMode(List<Diff> diffs, String text1, String text2) {
+void _diffLineMode(List<Diff> diffs, String text1, String text2, CreateDiffList? createDiffList) {
   final from = diffs.length;
   // Scan the text on a line-by-line basis first.
   final a = linesToChars(text1, text2);
@@ -154,7 +155,7 @@ void _diffLineMode(List<Diff> diffs, String text1, String text2) {
   text2 = a['chars2'] as String;
   final lineArray = a['lineArray'] as List<String>? ?? [];
 
-  _diff(diffs, text1, text2, checkLines: false);
+  _diff(diffs, text1, text2, false, createDiffList);
 
   // Convert the diff back to original text.
   charsToLines(diffs, lineArray, from: from);
@@ -185,8 +186,8 @@ void _diffLineMode(List<Diff> diffs, String text1, String text2) {
           // Delete the offending records and add the merged ones.
           diffs.removeRange(pointer - countDelete - countInsert, pointer);
           pointer = pointer - countDelete - countInsert;
-          final a = <Diff>[];
-          _diff(a, textDelete.toString(), textInsert.toString(), checkLines: false);
+          final a = createDiffList?.call(diffs) ?? <Diff>[];
+          _diff(a, textDelete.toString(), textInsert.toString(), false, createDiffList);
           diffs.insertAll(pointer, a);
           pointer = pointer + a.length;
         }
@@ -208,10 +209,9 @@ void _diffLineMode(List<Diff> diffs, String text1, String text2) {
 ///
 /// * [text1] is the old string to be diffed.
 /// * [text2] is the new string to be diffed.
-/// * [willContinue] is an optional callback that is invoked periodically.
 ///
 /// Returns a List of Diff objects.
-void diffBisect(List<Diff> diffs, String text1, String text2) {
+void diffBisect(List<Diff> diffs, String text1, String text2, {CreateDiffList? createDiffList}) {
   // Cache the text lengths to prevent multiple calls.
   final text1Length = text1.length;
   final text2Length = text2.length;
@@ -265,7 +265,7 @@ void diffBisect(List<Diff> diffs, String text1, String text2) {
           var x2 = text1Length - v2[k2Offset];
           if (x1 >= x2) {
             // Overlap detected.
-            _diffBisectSplit(diffs, text1, text2, x1, y1);
+            _diffBisectSplit(diffs, text1, text2, x1, y1, createDiffList);
             return;
           }
         }
@@ -302,7 +302,7 @@ void diffBisect(List<Diff> diffs, String text1, String text2) {
           x2 = text1Length - x2;
           if (x1 >= x2) {
             // Overlap detected.
-            _diffBisectSplit(diffs, text1, text2, x1, y1);
+            _diffBisectSplit(diffs, text1, text2, x1, y1, createDiffList);
             return;
           }
         }
@@ -324,13 +324,13 @@ void diffBisect(List<Diff> diffs, String text1, String text2) {
 /// * [y] is the index of split point in text2.
 ///
 /// Returns a List of Diff objects.
-void _diffBisectSplit(List<Diff> diffs, String text1, String text2, int x, int y) {
+void _diffBisectSplit(List<Diff> diffs, String text1, String text2, int x, int y, CreateDiffList? createDiffList) {
   final text1a = text1.substring(0, x);
   final text2a = text2.substring(0, y);
   final text1b = text1.substring(x);
   final text2b = text2.substring(y);
 
   // Compute both diffs serially.
-  _diff(diffs, text1a, text2a, checkLines: false);
-  _diff(diffs, text1b, text2b, checkLines: false);
+  _diff(diffs, text1a, text2a, false, createDiffList);
+  _diff(diffs, text1b, text2b, false, createDiffList);
 }
